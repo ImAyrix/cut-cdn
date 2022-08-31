@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
 	"os"
 	"regexp"
-	"runtime"
 	"strings"
 	"sync"
 )
@@ -28,10 +28,6 @@ const (
 
 var wg sync.WaitGroup
 
-func init() {
-	runtime.GOMAXPROCS(runtime.NumCPU()) // Run faster !
-}
-
 func main() {
 	var allRange []*net.IPNet
 
@@ -46,14 +42,13 @@ func main() {
 		fmt.Println(colorRed + "[☓] Input is empty!\n" + colorReset)
 		flag.PrintDefaults()
 		os.Exit(1)
-		fmt.Println(output)
 	}
 
 	if *cachePath != "" {
 		fmt.Println(colorBlue + "[+] Loading Cache File" + colorReset)
-		cahce, err := ioutil.ReadFile(*cachePath)
+		cache, err := os.ReadFile(*cachePath)
 		checkError(err)
-		allRange = regexIp(string(cahce))
+		allRange = regexIp(string(cache))
 		fmt.Println(colorBlue + "[+] Cache File Loaded" + colorReset)
 	} else {
 		fmt.Println(colorBlue + "[+] Loading All CDN Range" + colorReset)
@@ -265,7 +260,7 @@ func readFileUrl(url string) []*net.IPNet {
 	}
 	defer resp.Body.Close()
 
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	checkError(err)
 	return regexIp(string(data))
 }
