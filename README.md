@@ -19,7 +19,7 @@
 
 ## install
 ```
-git clone "https://github.com/AbbasAtaei/cut-cdn.git" ; cd cut-cdn ; go build ; mv cut-cdn ~/go/bin
+go install github.com/AbbasAtaei/cut-cdn@latest
 ```
 
 
