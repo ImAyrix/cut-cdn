@@ -40,7 +40,10 @@ func main() {
 
 	if *input == "" {
 		fmt.Println(colorRed + "[☓] Input is empty!\n" + colorReset)
+
 		flag.PrintDefaults()
+		fmt.Println(output)
+
 		os.Exit(1)
 	}
 
@@ -63,7 +66,11 @@ func main() {
 			for _, v := range allRange {
 				allLineRange += v.String() + "\n"
 			}
-			f.WriteString(allLineRange)
+
+			_, err = f.WriteString(allLineRange)
+			if err != nil {
+				return
+			}
 			fmt.Println(colorBlue + "[+] Cache File Created" + colorReset)
 		}
 	}
