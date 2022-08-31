@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -49,12 +48,16 @@ func main() {
 
 	if *cachePath != "" {
 		fmt.Println(colorBlue + "[+] Loading Cache File" + colorReset)
+
 		cache, err := os.ReadFile(*cachePath)
 		checkError(err)
+
 		allRange = regexIp(string(cache))
+
 		fmt.Println(colorBlue + "[+] Cache File Loaded" + colorReset)
 	} else {
 		fmt.Println(colorBlue + "[+] Loading All CDN Range" + colorReset)
+
 		allRange = loadAllCDN()
 		fmt.Println(colorBlue + "[+] All CDN Range Loaded" + colorReset)
 
@@ -90,7 +93,7 @@ func main() {
 	fmt.Println(colorBlue + "[+] Start Checking IPs" + colorReset)
 	if *output == "terminal" {
 		fmt.Println()
-		fmt.Println(colorGreen + "[⚡] All IP's Not Behind CDN ⤵" + colorReset)
+		fmt.Println(colorGreen + "[⚡] All IPs Not Behind CDN ⤵" + colorReset)
 	}
 	for i := 0; i < *thread; i++ {
 		wg.Add(1)
@@ -224,7 +227,7 @@ func loadAllCDN() []*net.IPNet {
 		incapsulaIPUrl := "https://my.incapsula.com/api/integration/v1/ips"
 		resp, err := http.Post(incapsulaIPUrl, "application/x-www-form-urlencoded", bytes.NewBuffer([]byte("resp_format=text")))
 		checkError(err)
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		checkError(err)
 		cidr := regexIp(string(body))
 		cidrChan <- cidr
@@ -247,9 +250,18 @@ func sendRequest(url string) []*net.IPNet {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	checkError(err)
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+
+	}(resp.Body)
+
+	body, err := io.ReadAll(resp.Body)
 	checkError(err)
+
 	return regexIp(string(body))
 }
 
@@ -260,12 +272,17 @@ func readFileUrl(url string) []*net.IPNet {
 			return nil
 		},
 	}
+
 	// Put content on file
 	resp, err := client.Get(url)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer resp.Body.Close()
+	checkError(err)
+
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+	}(resp.Body)
 
 	data, err := io.ReadAll(resp.Body)
 	checkError(err)
@@ -273,7 +290,7 @@ func readFileUrl(url string) []*net.IPNet {
 }
 
 func regexIp(body string) []*net.IPNet {
-	re, e := regexp.Compile(`(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(3[0-2]|[1-2][0-9]|[0-9]))`)
+	re, e := regexp.Compile(`([0-9]{1,3}\.){3}[0-9]{1,3}(\/([0-9]|[1-2][0-9]|3[0-2]))?`)
 	checkError(e)
 
 	var ranges []*net.IPNet
@@ -301,8 +318,13 @@ func checkAndWrite(allCidr []*net.IPNet, channel chan string, output string) {
 			} else {
 				file, err := os.OpenFile(output, os.O_APPEND|os.O_WRONLY, 0666)
 				checkError(err)
-				fmt.Fprintln(file, ip)
-				file.Close()
+				_, err = fmt.Fprintln(file, ip)
+				if err != nil {
+					log.Fatal(err.Error())
+				}
+
+				err = file.Close()
+				checkError(err)
 			}
 		}
 	}
@@ -316,7 +338,7 @@ func readInput(input string) []string {
 		return []string{ip.String()}
 	}
 
-	fileByte, err := ioutil.ReadFile(input)
+	fileByte, err := os.ReadFile(input)
 	checkError(err)
 	fmt.Println(colorBlue + "[+] Input Parsed" + colorReset)
 	return strings.Split(string(fileByte), "\n")
