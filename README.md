@@ -17,6 +17,11 @@
 * Oracle
 * Incapsula
 
+## install
+```
+git clone "https://github.com/AbbasAtaei/cut-cdn.git" ; cd cut-cdn ; go build ; mv cut-cdn ~/go/bin
+```
+
 
 ## Usage Parameters
 ```
