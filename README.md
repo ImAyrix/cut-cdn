@@ -13,6 +13,9 @@
 * Akamai
 * Leaseweb
 * DDoS Guard
+* Digitalocean
+* Oracle
+* Incapsula
 
 
 ## Usage Parameters
