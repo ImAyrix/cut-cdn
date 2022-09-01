@@ -26,15 +26,17 @@ go install github.com/AbbasAtaei/cut-cdn@latest
 ## Usage Parameters
 ```
   -c string
-    	Use cache file (offline) [Path]
+        Use cache file (offline) [Path]
   -i string
-    	Input [Filename | IP]
+        Input [Filename | IP]
   -o string
-    	Output [Filename] (default "terminal")
+        Output [Filename] (default "terminal")
   -s string
-    	Save all cidr [Path]
+        Save all cidr [Path]
+  -silent
+        show only IPs in output
   -t int
-    	Number Of Thread [Number] (default 1)
+        Number Of Thread [Number] (default 1)
 ```
 
 ## More info
