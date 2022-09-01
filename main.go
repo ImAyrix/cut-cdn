@@ -40,28 +40,29 @@ func main() {
 	savePath := flag.String("s", "", "Save all cidr [Path]")
 	cachePath := flag.String("c", "", "Use cache file (offline) [Path]")
 	thread := flag.Int("t", 1, "Number Of Thread [Number]")
+	isSilent := flag.Bool("silent", false, "show only IPs in output")
 	flag.Parse()
 
 	if *input == "" {
-		fmt.Println(colorRed + "[☓] Input is empty!\n" + colorReset)
+		printText(*isSilent, colorRed, colorReset, "[☓] Input is empty!\n")
 		flag.PrintDefaults()
 		os.Exit(1)
 		fmt.Println(output)
 	}
 
 	if *cachePath != "" {
-		fmt.Println(colorBlue + "[+] Loading Cache File" + colorReset)
+		printText(*isSilent, colorBlue, colorReset, "[+] Loading Cache File")
 		cahce, err := ioutil.ReadFile(*cachePath)
 		checkError(err)
 		allRange = regexIp(string(cahce))
-		fmt.Println(colorBlue + "[+] Cache File Loaded" + colorReset)
+		printText(*isSilent, colorBlue, colorReset, "[+] Cache File Loaded")
 	} else {
-		fmt.Println(colorBlue + "[+] Loading All CDN Range" + colorReset)
+		printText(*isSilent, colorBlue, colorReset, "[+] Loading All CDN Range")
 		allRange = loadAllCDN()
-		fmt.Println(colorBlue + "[+] All CDN Range Loaded" + colorReset)
+		printText(*isSilent, colorBlue, colorReset, "[+] All CDN Range Loaded")
 
 		if *savePath != "" {
-			fmt.Println(colorBlue + "[+] Creating Cache File" + colorReset)
+			printText(*isSilent, colorBlue, colorReset, "[+] Creating Cache File")
 			f, err := os.Create(*savePath)
 			checkError(err)
 			var allLineRange string
@@ -69,7 +70,7 @@ func main() {
 				allLineRange += v.String() + "\n"
 			}
 			f.WriteString(allLineRange)
-			fmt.Println(colorBlue + "[+] Cache File Created" + colorReset)
+			printText(*isSilent, colorBlue, colorReset, "[+] Cache File Created")
 		}
 	}
 
@@ -85,10 +86,10 @@ func main() {
 	}
 	close(channel)
 
-	fmt.Println(colorBlue + "[+] Start Checking IPs" + colorReset)
+	printText(*isSilent, colorBlue, colorReset, "[+] Start Checking IPs")
 	if *output == "terminal" {
 		fmt.Println()
-		fmt.Println(colorGreen + "[⚡] All IP's Not Behind CDN ⤵" + colorReset)
+		printText(*isSilent, colorGreen, colorReset, "[⚡] All IP's Not Behind CDN ⤵")
 	}
 	for i := 0; i < *thread; i++ {
 		wg.Add(1)
@@ -97,7 +98,7 @@ func main() {
 	wg.Wait()
 
 	fmt.Println()
-	fmt.Println(colorYellow + "Programmer: Amirabbas Ataei :)" + colorReset)
+	printText(*isSilent, colorYellow, colorReset, "Programmer: Amirabbas Ataei :)")
 }
 
 func loadAllCDN() []*net.IPNet {
@@ -323,5 +324,11 @@ func readInput(input string) []string {
 func checkError(e error) {
 	if e != nil {
 		log.Fatal(e)
+	}
+}
+
+func printText(isSilent bool, textColor string, resetColor string, text string) {
+	if !isSilent {
+		fmt.Println(textColor + text + resetColor)
 	}
 }
