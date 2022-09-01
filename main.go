@@ -46,8 +46,10 @@ func main() {
 	if *input == "" {
 		printText(*isSilent, colorRed, colorReset, "[☓] Input is empty!\n")
 		flag.PrintDefaults()
-		os.Exit(1)
+
 		fmt.Println(output)
+
+		os.Exit(1)
 	}
 
 	if *cachePath != "" {
