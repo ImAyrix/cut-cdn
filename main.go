@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -55,7 +54,7 @@ func main() {
 
 	if *cachePath != "" {
 		printText(*isSilent, colorBlue, colorReset, "[+] Loading Cache File")
-		cache, err := ioutil.ReadFile(*cachePath)
+		cache, err := os.ReadFile(*cachePath)
 		checkError(err)
 		allRange = regexIp(string(cache))
 		printText(*isSilent, colorBlue, colorReset, "[+] Cache File Loaded")
@@ -98,7 +97,7 @@ func main() {
 	printText(*isSilent, colorBlue, colorReset, "[+] Start Checking IPs")
 	if *output == "terminal" {
 		printText(*isSilent, colorGreen, colorReset, "")
-		printText(*isSilent, colorGreen, colorReset, "[⚡] All IP's Not Behind CDN ⤵")
+		printText(*isSilent, colorGreen, colorReset, "[⚡] All IPs Not Behind CDN ⤵")
 	}
 	for i := 0; i < *thread; i++ {
 		wg.Add(1)
@@ -232,7 +231,7 @@ func loadAllCDN() []*net.IPNet {
 		incapsulaIPUrl := "https://my.incapsula.com/api/integration/v1/ips"
 		resp, err := http.Post(incapsulaIPUrl, "application/x-www-form-urlencoded", bytes.NewBuffer([]byte("resp_format=text")))
 		checkError(err)
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		checkError(err)
 		cidr := regexIp(string(body))
 		cidrChan <- cidr
@@ -255,8 +254,14 @@ func sendRequest(url string) []*net.IPNet {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	checkError(err)
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+	}(resp.Body)
+
+	body, err := io.ReadAll(resp.Body)
 	checkError(err)
 	return regexIp(string(body))
 }
@@ -281,13 +286,13 @@ func readFileUrl(url string) []*net.IPNet {
 		}
 	}(resp.Body)
 
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	checkError(err)
 	return regexIp(string(data))
 }
 
 func regexIp(body string) []*net.IPNet {
-	re, e := regexp.Compile(`(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(3[0-2]|[1-2][0-9]|[0-9]))`)
+	re, e := regexp.Compile(`([0-9]{1,3}\.){3}[0-9]{1,3}(\/([0-9]|[1-2][0-9]|3[0-2]))`)
 	checkError(e)
 
 	var ranges []*net.IPNet
@@ -335,7 +340,7 @@ func readInput(isSilent bool, input string) []string {
 		return []string{ip.String()}
 	}
 
-	fileByte, err := ioutil.ReadFile(input)
+	fileByte, err := os.ReadFile(input)
 	checkError(err)
 	printText(isSilent, colorBlue, colorReset, "[+] Input Parsed")
 	return strings.Split(string(fileByte), "\n")
