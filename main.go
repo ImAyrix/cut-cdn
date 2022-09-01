@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net"
@@ -54,9 +55,9 @@ func main() {
 
 	if *cachePath != "" {
 		printText(*isSilent, colorBlue, colorReset, "[+] Loading Cache File")
-		cahce, err := ioutil.ReadFile(*cachePath)
+		cache, err := ioutil.ReadFile(*cachePath)
 		checkError(err)
-		allRange = regexIp(string(cahce))
+		allRange = regexIp(string(cache))
 		printText(*isSilent, colorBlue, colorReset, "[+] Cache File Loaded")
 	} else {
 		printText(*isSilent, colorBlue, colorReset, "[+] Loading All CDN Range")
@@ -71,7 +72,12 @@ func main() {
 			for _, v := range allRange {
 				allLineRange += v.String() + "\n"
 			}
-			f.WriteString(allLineRange)
+
+			_, err = f.WriteString(allLineRange)
+			if err != nil {
+				log.Fatal(err)
+			}
+
 			printText(*isSilent, colorBlue, colorReset, "[+] Cache File Created")
 		}
 	}
@@ -86,6 +92,7 @@ func main() {
 	for _, ip := range allIpInput {
 		channel <- ip
 	}
+
 	close(channel)
 
 	printText(*isSilent, colorBlue, colorReset, "[+] Start Checking IPs")
@@ -266,7 +273,13 @@ func readFileUrl(url string) []*net.IPNet {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer resp.Body.Close()
+
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+	}(resp.Body)
 
 	data, err := ioutil.ReadAll(resp.Body)
 	checkError(err)
@@ -302,8 +315,13 @@ func checkAndWrite(allCidr []*net.IPNet, channel chan string, output string) {
 			} else {
 				file, err := os.OpenFile(output, os.O_APPEND|os.O_WRONLY, 0666)
 				checkError(err)
-				fmt.Fprintln(file, ip)
-				file.Close()
+				_, err = fmt.Fprintln(file, ip)
+				if err != nil {
+					log.Fatal(err.Error())
+				}
+				if err := file.Close(); err != nil {
+					log.Fatal(err.Error())
+				}
 			}
 		}
 	}
