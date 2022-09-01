@@ -79,7 +79,7 @@ func main() {
 		checkError(err)
 	}
 
-	allIpInput := readInput(*input)
+	allIpInput := readInput(*isSilent, *input)
 	channel := make(chan string, len(allIpInput))
 	for _, ip := range allIpInput {
 		channel <- ip
@@ -88,7 +88,7 @@ func main() {
 
 	printText(*isSilent, colorBlue, colorReset, "[+] Start Checking IPs")
 	if *output == "terminal" {
-		fmt.Println()
+		printText(*isSilent, colorGreen, colorReset, "")
 		printText(*isSilent, colorGreen, colorReset, "[⚡] All IP's Not Behind CDN ⤵")
 	}
 	for i := 0; i < *thread; i++ {
@@ -97,7 +97,7 @@ func main() {
 	}
 	wg.Wait()
 
-	fmt.Println()
+	printText(*isSilent, colorGreen, colorReset, "")
 	printText(*isSilent, colorYellow, colorReset, "Programmer: Amirabbas Ataei :)")
 }
 
@@ -307,17 +307,17 @@ func checkAndWrite(allCidr []*net.IPNet, channel chan string, output string) {
 	}
 }
 
-func readInput(input string) []string {
-	fmt.Println(colorBlue + "[+] Input Parsing" + colorReset)
+func readInput(isSilent bool, input string) []string {
+	printText(isSilent, colorBlue, colorReset, "[+] Input Parsing")
 	ip := net.ParseIP(input)
 	if ip != nil {
-		fmt.Println(colorBlue + "[+] Input Parsed" + colorReset)
+		printText(isSilent, colorBlue, colorReset, "[+] Input Parsed")
 		return []string{ip.String()}
 	}
 
 	fileByte, err := ioutil.ReadFile(input)
 	checkError(err)
-	fmt.Println(colorBlue + "[+] Input Parsed" + colorReset)
+	printText(isSilent, colorBlue, colorReset, "[+] Input Parsed")
 	return strings.Split(string(fileByte), "\n")
 }
 
