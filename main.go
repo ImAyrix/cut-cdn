@@ -73,9 +73,7 @@ func main() {
 			}
 
 			_, err = f.WriteString(allLineRange)
-			if err != nil {
-				log.Fatal(err)
-			}
+			checkError(err)
 
 			printText(*isSilent, colorBlue, colorReset, "[+] Cache File Created")
 		}
@@ -256,9 +254,7 @@ func sendRequest(url string) []*net.IPNet {
 	checkError(err)
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
-		if err != nil {
-			log.Fatal(err.Error())
-		}
+		checkError(err)
 	}(resp.Body)
 
 	body, err := io.ReadAll(resp.Body)
@@ -275,15 +271,11 @@ func readFileUrl(url string) []*net.IPNet {
 	}
 	// Put content on file
 	resp, err := client.Get(url)
-	if err != nil {
-		log.Fatal(err)
-	}
+	checkError(err)
 
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
-		if err != nil {
-			log.Fatal(err.Error())
-		}
+		checkError(err)
 	}(resp.Body)
 
 	data, err := io.ReadAll(resp.Body)
@@ -321,12 +313,9 @@ func checkAndWrite(allCidr []*net.IPNet, channel chan string, output string) {
 				file, err := os.OpenFile(output, os.O_APPEND|os.O_WRONLY, 0666)
 				checkError(err)
 				_, err = fmt.Fprintln(file, ip)
-				if err != nil {
-					log.Fatal(err.Error())
-				}
-				if err := file.Close(); err != nil {
-					log.Fatal(err.Error())
-				}
+				checkError(err)
+				err = file.Close()
+				checkError(err)
 			}
 		}
 	}
@@ -348,7 +337,7 @@ func readInput(isSilent bool, input string) []string {
 
 func checkError(e error) {
 	if e != nil {
-		log.Fatal(e)
+		log.Fatal(e.Error())
 	}
 }
 
