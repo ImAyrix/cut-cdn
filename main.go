@@ -110,7 +110,7 @@ func main() {
 func loadAllCDN() []*net.IPNet {
 	var wg sync.WaitGroup
 	var allRanges []*net.IPNet
-	cidrChan := make(chan []*net.IPNet, 17)
+	cidrChan := make(chan []*net.IPNet, 18)
 
 	wg.Add(1)
 	go func() {
@@ -164,6 +164,13 @@ func loadAllCDN() []*net.IPNet {
 	wg.Add(1)
 	go func() {
 		cidr := sendRequest("https://www.bing.com/toolbox/bingbot.json")
+		cidrChan <- cidr
+		wg.Done()
+	}()
+
+	wg.Add(1)
+	go func() {
+		cidr := readFileUrl("https://www.arvancloud.com/en/ips.txt")
 		cidrChan <- cidr
 		wg.Done()
 	}()
