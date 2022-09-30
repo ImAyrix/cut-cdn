@@ -29,7 +29,7 @@ const (
 )
 
 var wg sync.WaitGroup
-var VERSION = "1.0.1"
+var VERSION = "1.0.3"
 
 func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU()) // Run faster !
