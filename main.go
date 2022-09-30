@@ -29,7 +29,7 @@ const (
 )
 
 var wg sync.WaitGroup
-var VERSION = "1.0.2"
+var VERSION = "1.0.1"
 
 func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU()) // Run faster !
@@ -419,7 +419,7 @@ func checkUpdate(isSilent bool) {
 		printText(isSilent, colorReset, colorReset, "")
 		printText(isSilent, colorReset, colorReset, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -")
 		printText(isSilent, colorReset, colorReset, fmt.Sprintf("|    %v🔥 Please update Cut-CDN!%v                                       |", colorGreen, colorReset))
-		printText(isSilent, colorReset, colorReset, fmt.Sprintf("|    💣 Run: %vgo install github.com/AbbasAtaei/cut-cdn@latest%v         |", colorReset, colorReset))
+		printText(isSilent, colorReset, colorReset, fmt.Sprintf("|    💣 Run: %vgo install github.com/AbbasAtaei/cut-cdn@v%v%v         |", colorReset, re.FindStringSubmatch(body)[1], colorReset))
 		printText(isSilent, colorReset, colorReset, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -")
 		printText(isSilent, colorReset, colorReset, "")
 	}
