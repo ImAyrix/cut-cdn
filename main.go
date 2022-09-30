@@ -120,7 +120,7 @@ func main() {
 func loadAllCDN() []*net.IPNet {
 	var wg sync.WaitGroup
 	var allRanges []*net.IPNet
-	cidrChan := make(chan []*net.IPNet, 18)
+	cidrChan := make(chan []*net.IPNet, 23)
 
 	wg.Add(1)
 	go func() {
@@ -202,6 +202,41 @@ func loadAllCDN() []*net.IPNet {
 	wg.Add(1)
 	go func() {
 		cidr := sendRequest("https://api.bgpview.io/asn/AS262254/prefixes")
+		cidrChan <- cidr
+		wg.Done()
+	}()
+
+	wg.Add(1)
+	go func() {
+		cidr := sendRequest("https://api.bgpview.io/asn/AS200449/prefixes")
+		cidrChan <- cidr
+		wg.Done()
+	}()
+
+	wg.Add(1)
+	go func() {
+		cidr := sendRequest("https://api.bgpview.io/asn/AS12989/prefixes")
+		cidrChan <- cidr
+		wg.Done()
+	}()
+
+	wg.Add(1)
+	go func() {
+		cidr := sendRequest("https://api.bgpview.io/asn/AS59796/prefixes")
+		cidrChan <- cidr
+		wg.Done()
+	}()
+
+	wg.Add(1)
+	go func() {
+		cidr := sendRequest("https://api.bgpview.io/asn/AS30148/prefixes")
+		cidrChan <- cidr
+		wg.Done()
+	}()
+
+	wg.Add(1)
+	go func() {
+		cidr := sendRequest("https://api.bgpview.io/asn/AS136165/prefixes")
 		cidrChan <- cidr
 		wg.Done()
 	}()
