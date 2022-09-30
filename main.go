@@ -405,6 +405,7 @@ func readInput(isSilent bool, input string) []string {
 }
 
 func checkUpdate(isSilent bool) {
+	// Check Updates
 	resp, err := http.Get("https://github.com/AbbasAtaei/cut-cdn")
 	checkError(err)
 
