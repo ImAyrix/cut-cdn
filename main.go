@@ -412,7 +412,7 @@ func checkUpdate(isSilent bool) {
 	checkError(err)
 	body := string(respByte)
 
-	re, e := regexp.Compile(`cut-cdn\s+v(1.0.1)`)
+	re, e := regexp.Compile(`cut-cdn\s+v(1\.0\..)`)
 	checkError(e)
 
 	if re.FindStringSubmatch(body)[1] != VERSION {
