@@ -2,21 +2,21 @@
 ✂️ Striping CDN IPs from a list of IP Addresses
 
 ## CDN Providers
-* Fastly
-* Google cloud
-* Azure CDN
+* Akamai
 * Amazon
+* Arvancloud
+* Azure CDN
+* Bing
 * Cloudflare
 * Cloudfront
-* Maxcdn
-* Bing
-* Akamai
-* Leaseweb
 * DDoS Guard
 * Digitalocean
-* Oracle
+* Fastly
+* Google cloud
 * Incapsula
-* Arvancloud 
+* Leaseweb
+* Maxcdn
+* Oracle
 * Qrator
 * StackPath
 * StormWall

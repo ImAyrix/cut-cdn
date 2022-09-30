@@ -29,6 +29,7 @@ const (
 )
 
 var wg sync.WaitGroup
+var VERSION = "1.0.2"
 
 func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU()) // Run faster !
@@ -56,6 +57,7 @@ func main() {
 
 		os.Exit(1)
 	}
+	checkUpdate(*isSilent)
 
 	if *cachePath != "" {
 		printText(*isSilent, colorBlue, colorReset, "[+] Loading Cache File")
@@ -400,6 +402,28 @@ func readInput(isSilent bool, input string) []string {
 	checkError(err)
 	printText(isSilent, colorBlue, colorReset, "[+] Input Parsed")
 	return strings.Split(string(fileByte), "\n")
+}
+
+func checkUpdate(isSilent bool) {
+	resp, err := http.Get("https://github.com/AbbasAtaei/cut-cdn")
+	checkError(err)
+
+	respByte, err := io.ReadAll(resp.Body)
+	checkError(err)
+	body := string(respByte)
+
+	re, e := regexp.Compile(`cut-cdn\s+v(1.0.1)`)
+	checkError(e)
+
+	if re.FindStringSubmatch(body)[1] != VERSION {
+		printText(isSilent, colorReset, colorReset, "")
+		printText(isSilent, colorReset, colorReset, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -")
+		printText(isSilent, colorReset, colorReset, fmt.Sprintf("|    %v🔥 Please update Cut-CDN!%v                                       |", colorGreen, colorReset))
+		printText(isSilent, colorReset, colorReset, fmt.Sprintf("|    💣 Run: %vgo install github.com/AbbasAtaei/cut-cdn@latest%v         |", colorReset, colorReset))
+		printText(isSilent, colorReset, colorReset, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -")
+		printText(isSilent, colorReset, colorReset, "")
+	}
+
 }
 
 func checkError(e error) {
