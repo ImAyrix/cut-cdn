@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"flag"
 	"fmt"
@@ -13,6 +14,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 )
 
 const (
@@ -43,7 +45,10 @@ func main() {
 	isSilent := flag.Bool("silent", false, "show only IPs in output")
 	flag.Parse()
 
-	if *input == "" {
+	fi, err := os.Stdin.Stat()
+	checkError(err)
+
+	if *input == "" && fi.Mode()&os.ModeNamedPipe == 0 {
 		printText(*isSilent, colorRed, colorReset, "[☓] Input is empty!\n")
 		flag.PrintDefaults()
 
@@ -84,7 +89,12 @@ func main() {
 		checkError(err)
 	}
 
-	allIpInput := readInput(*isSilent, *input)
+	var allIpInput []string
+	if fi.Mode()&os.ModeNamedPipe != 0 {
+		allIpInput = readInput(*isSilent, "STDIN")
+	} else {
+		allIpInput = readInput(*isSilent, *input)
+	}
 	channel := make(chan string, len(allIpInput))
 	for _, ip := range allIpInput {
 		channel <- ip
@@ -177,21 +187,21 @@ func loadAllCDN() []*net.IPNet {
 
 	wg.Add(1)
 	go func() {
-		cidr := sendRequest("https://asnlookup.com/asn/AS12222")
+		cidr := sendRequest("https://api.bgpview.io/asn/AS12222/prefixes")
 		cidrChan <- cidr
 		wg.Done()
 	}()
 
 	wg.Add(1)
 	go func() {
-		cidr := sendRequest("https://asnlookup.com/asn/AS60626")
+		cidr := sendRequest("https://api.bgpview.io/asn/AS60626/prefixes")
 		cidrChan <- cidr
 		wg.Done()
 	}()
 
 	wg.Add(1)
 	go func() {
-		cidr := sendRequest("https://asnlookup.com/asn/AS262254")
+		cidr := sendRequest("https://api.bgpview.io/asn/AS262254/prefixes")
 		cidrChan <- cidr
 		wg.Done()
 	}()
@@ -256,7 +266,9 @@ func sendRequest(url string) []*net.IPNet {
 	req, err := http.NewRequest("GET", url, nil)
 	checkError(err)
 	req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:103.0) Gecko/20100101 Firefox/103.0")
-	client := &http.Client{}
+	client := &http.Client{
+		Timeout: 30 * time.Second,
+	}
 	resp, err := client.Do(req)
 	checkError(err)
 	defer func(Body io.ReadCloser) {
@@ -275,6 +287,7 @@ func readFileUrl(url string) []*net.IPNet {
 			r.URL.Opaque = r.URL.Path
 			return nil
 		},
+		Timeout: 60 * time.Second,
 	}
 	// Put content on file
 	resp, err := client.Get(url)
@@ -291,6 +304,7 @@ func readFileUrl(url string) []*net.IPNet {
 }
 
 func regexIp(body string) []*net.IPNet {
+	body = strings.Replace(body, "\\/", "/", -1)
 	re, e := regexp.Compile(`(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(3[0-2]|[1-2][0-9]|[0-9]))`)
 	checkError(e)
 
@@ -330,6 +344,17 @@ func checkAndWrite(allCidr []*net.IPNet, channel chan string, output string) {
 
 func readInput(isSilent bool, input string) []string {
 	printText(isSilent, colorBlue, colorReset, "[+] Input Parsing")
+
+	if input == "STDIN" {
+		var result []string
+		scanner := bufio.NewScanner(os.Stdin)
+		for scanner.Scan() {
+			ip := scanner.Text()
+			result = append(result, ip)
+		}
+		printText(isSilent, colorBlue, colorReset, "[+] Input Parsed")
+		return result
+	}
 	ip := net.ParseIP(input)
 	if ip != nil {
 		printText(isSilent, colorBlue, colorReset, "[+] Input Parsed")
