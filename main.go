@@ -413,14 +413,14 @@ func checkUpdate(isSilent bool) {
 	checkError(err)
 	body := string(respByte)
 
-	re, e := regexp.Compile(`cut-cdn\s+v(1\.0\..)`)
+	re, e := regexp.Compile(`cut-cdn\s+v(\d\.\d\.\d)`)
 	checkError(e)
 
 	if re.FindStringSubmatch(body)[1] != VERSION {
 		printText(isSilent, colorReset, colorReset, "")
 		printText(isSilent, colorReset, colorReset, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -")
 		printText(isSilent, colorReset, colorReset, fmt.Sprintf("|    %v🔥 Please update Cut-CDN!%v                                       |", colorGreen, colorReset))
-		printText(isSilent, colorReset, colorReset, fmt.Sprintf("|    💣 Run: %vgo install github.com/AbbasAtaei/cut-cdn@v%v%v         |", colorReset, re.FindStringSubmatch(body)[1], colorReset))
+		printText(isSilent, colorReset, colorReset, fmt.Sprintf("|    💣 Run: %vgo install github.com/AbbasAtaei/cut-cdn@latest%v         |", colorReset, colorReset))
 		printText(isSilent, colorReset, colorReset, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -")
 		printText(isSilent, colorReset, colorReset, "")
 	}
