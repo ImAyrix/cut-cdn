@@ -5,13 +5,13 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"github.com/projectdiscovery/gologger"
 	"io"
 	"log"
 	"net"
 	"net/http"
 	"os"
 	"regexp"
-	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -29,11 +29,8 @@ const (
 )
 
 var wg sync.WaitGroup
-var VERSION = "1.0.4"
 
-func init() {
-	runtime.GOMAXPROCS(runtime.NumCPU()) // Run faster !
-}
+const VERSION = "1.0.5"
 
 func main() {
 	var allRange []*net.IPNet
@@ -50,7 +47,7 @@ func main() {
 	checkError(err)
 
 	if *input == "" && fi.Mode()&os.ModeNamedPipe == 0 {
-		printText(*isSilent, colorRed, colorReset, "[☓] Input is empty!\n")
+		printText(*isSilent, "Input is empty!\n\n", "Error")
 		flag.PrintDefaults()
 
 		fmt.Println(output)
@@ -60,18 +57,18 @@ func main() {
 	checkUpdate(*isSilent)
 
 	if *cachePath != "" {
-		printText(*isSilent, colorBlue, colorReset, "[+] Loading Cache File")
+		printText(*isSilent, "Loading Cache File", "Info")
 		cache, err := os.ReadFile(*cachePath)
 		checkError(err)
 		allRange = regexIp(string(cache))
-		printText(*isSilent, colorBlue, colorReset, "[+] Cache File Loaded")
+		printText(*isSilent, "Cache File Loaded", "Info")
 	} else {
-		printText(*isSilent, colorBlue, colorReset, "[+] Loading All CDN Range")
+		printText(*isSilent, "Loading All CDN Range", "Info")
 		allRange = loadAllCDN()
-		printText(*isSilent, colorBlue, colorReset, "[+] All CDN Range Loaded")
+		printText(*isSilent, "All CDN Range Loaded", "Info")
 
 		if *savePath != "" {
-			printText(*isSilent, colorBlue, colorReset, "[+] Creating Cache File")
+			printText(*isSilent, "Creating Cache File", "Info")
 			f, err := os.Create(*savePath)
 			checkError(err)
 			var allLineRange string
@@ -82,7 +79,7 @@ func main() {
 			_, err = f.WriteString(allLineRange)
 			checkError(err)
 
-			printText(*isSilent, colorBlue, colorReset, "[+] Cache File Created")
+			printText(*isSilent, "Cache File Created", "Info")
 		}
 	}
 
@@ -104,10 +101,10 @@ func main() {
 
 	close(channel)
 
-	printText(*isSilent, colorBlue, colorReset, "[+] Start Checking IPs")
+	printText(*isSilent, "Start Checking IPs", "Info")
 	if *output == "terminal" {
-		printText(*isSilent, colorGreen, colorReset, "")
-		printText(*isSilent, colorGreen, colorReset, "[⚡] All IPs Not Behind CDN ⤵")
+		printText(*isSilent, "", "Print")
+		printText(*isSilent, colorGreen+"[⚡] All IPs Not Behind CDN ⤵"+colorReset, "Print")
 	}
 	for i := 0; i < *thread; i++ {
 		wg.Add(1)
@@ -115,8 +112,8 @@ func main() {
 	}
 	wg.Wait()
 
-	printText(*isSilent, colorGreen, colorReset, "")
-	printText(*isSilent, colorYellow, colorReset, "Programmer: Amirabbas Ataei :)")
+	printText(*isSilent, "", "Print")
+	printText(*isSilent, "Github page: https://github.com/AbbasAtaei/cut-cdn", "Print")
 }
 
 func loadAllCDN() []*net.IPNet {
@@ -380,7 +377,7 @@ func checkAndWrite(allCidr []*net.IPNet, channel chan string, output string) {
 }
 
 func readInput(isSilent bool, input string) []string {
-	printText(isSilent, colorBlue, colorReset, "[+] Input Parsing")
+	printText(isSilent, "Input Parsing", "Info")
 
 	if input == "STDIN" {
 		var result []string
@@ -389,18 +386,18 @@ func readInput(isSilent bool, input string) []string {
 			ip := scanner.Text()
 			result = append(result, ip)
 		}
-		printText(isSilent, colorBlue, colorReset, "[+] Input Parsed")
+		printText(isSilent, "Input Parsed", "Info")
 		return result
 	}
 	ip := net.ParseIP(input)
 	if ip != nil {
-		printText(isSilent, colorBlue, colorReset, "[+] Input Parsed")
+		printText(isSilent, "Input Parsed", "Info")
 		return []string{ip.String()}
 	}
 
 	fileByte, err := os.ReadFile(input)
 	checkError(err)
-	printText(isSilent, colorBlue, colorReset, "[+] Input Parsed")
+	printText(isSilent, "Input Parsed", "Info")
 	return strings.Split(string(fileByte), "\n")
 }
 
@@ -417,12 +414,12 @@ func checkUpdate(isSilent bool) {
 	checkError(e)
 
 	if re.FindStringSubmatch(body)[1] != VERSION {
-		printText(isSilent, colorReset, colorReset, "")
-		printText(isSilent, colorReset, colorReset, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -")
-		printText(isSilent, colorReset, colorReset, fmt.Sprintf("|    %v🔥 Please update Cut-CDN!%v                                       |", colorGreen, colorReset))
-		printText(isSilent, colorReset, colorReset, fmt.Sprintf("|    💣 Run: %vgo install github.com/AbbasAtaei/cut-cdn@latest%v         |", colorReset, colorReset))
-		printText(isSilent, colorReset, colorReset, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -")
-		printText(isSilent, colorReset, colorReset, "")
+		printText(isSilent, "", "Print")
+		printText(isSilent, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -", "Print")
+		printText(isSilent, fmt.Sprintf("|    %v🔥  Please update Cut-CDN!%v                                      |", colorGreen, colorReset), "Print")
+		printText(isSilent, "|    💣  Run: go install github.com/AbbasAtaei/cut-cdn@latest        |", "Print")
+		printText(isSilent, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -", "Print")
+		printText(isSilent, "", "Print")
 	}
 
 }
@@ -433,8 +430,14 @@ func checkError(e error) {
 	}
 }
 
-func printText(isSilent bool, textColor string, resetColor string, text string) {
+func printText(isSilent bool, text string, textType string) {
 	if !isSilent {
-		fmt.Println(textColor + text + resetColor)
+		if textType == "Info" {
+			gologger.Info().Msg(text)
+		} else if textType == "Print" {
+			gologger.Print().Msg(text)
+		} else if textType == "Error" {
+			gologger.Error().Msg(text)
+		}
 	}
 }
