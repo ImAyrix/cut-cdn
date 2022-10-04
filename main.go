@@ -30,7 +30,7 @@ const (
 
 var wg sync.WaitGroup
 
-const VERSION = "1.0.5"
+const VERSION = "1.0.4"
 
 func main() {
 	var allRange []*net.IPNet
