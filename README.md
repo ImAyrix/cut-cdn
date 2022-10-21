@@ -1,5 +1,5 @@
 # Cut CDN
-✂️ Striping CDN IPs from a list of IP Addresses
+✂️ Removing CDN IPs from the list of IP addresses
 
 ## CDN Providers
 * Akamai
