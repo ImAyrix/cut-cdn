@@ -403,7 +403,7 @@ func readInput(isSilent bool, input string) []string {
 
 func checkUpdate(isSilent bool) {
 	// Check Updates
-	resp, err := http.Get("https://github.com/AbbasAtaei/cut-cdn")
+	resp, err := http.Get("https://github.com/ImAyrix/cut-cdn")
 	checkError(err)
 
 	respByte, err := io.ReadAll(resp.Body)
