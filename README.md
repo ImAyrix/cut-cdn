@@ -25,7 +25,7 @@
 
 ## Installation
 ```
-go install github.com/AbbasAtaei/cut-cdn@latest
+go install github.com/ImAyrix/cut-cdn@latest
 ```
 
 
