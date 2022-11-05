@@ -30,7 +30,7 @@ const (
 
 var wg sync.WaitGroup
 
-const VERSION = "1.0.6"
+const VERSION = "1.0.7"
 
 func main() {
 	var allRange []*net.IPNet
@@ -113,7 +113,7 @@ func main() {
 	wg.Wait()
 
 	printText(*isSilent, "", "Print")
-	printText(*isSilent, "Github page: https://github.com/AbbasAtaei/cut-cdn", "Print")
+	printText(*isSilent, "Github page: https://github.com/ImAyrix/cut-cdn", "Print")
 }
 
 func loadAllCDN() []*net.IPNet {
@@ -417,7 +417,7 @@ func checkUpdate(isSilent bool) {
 		printText(isSilent, "", "Print")
 		printText(isSilent, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -", "Print")
 		printText(isSilent, fmt.Sprintf("|    %v🔥  Please update Cut-CDN!%v                                      |", colorGreen, colorReset), "Print")
-		printText(isSilent, "|    💣  Run: go install github.com/AbbasAtaei/cut-cdn@latest        |", "Print")
+		printText(isSilent, "|    💣  Run: go install github.com/ImAyrix/cut-cdn@latest           |", "Print")
 		printText(isSilent, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -", "Print")
 		printText(isSilent, "", "Print")
 	}
