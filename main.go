@@ -30,7 +30,7 @@ const (
 
 var wg sync.WaitGroup
 
-const VERSION = "1.0.7"
+const VERSION = "1.0.8"
 
 func main() {
 	var allRange []*net.IPNet
@@ -179,7 +179,7 @@ func loadAllCDN() []*net.IPNet {
 
 	wg.Add(1)
 	go func() {
-		cidr := readFileUrl("https://www.arvancloud.com/en/ips.txt")
+		cidr := readFileUrl("https://www.arvancloud.ir/en/ips.txt")
 		cidrChan <- cidr
 		wg.Done()
 	}()
