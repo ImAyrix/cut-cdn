@@ -30,7 +30,7 @@ const (
 
 var wg sync.WaitGroup
 
-const VERSION = "1.0.8"
+const VERSION = "1.0.9"
 
 func main() {
 	var allRange []*net.IPNet
@@ -46,7 +46,7 @@ func main() {
 	fi, err := os.Stdin.Stat()
 	checkError(err)
 
-	if *input == "" && fi.Mode()&os.ModeNamedPipe == 0 {
+	if *input == "" && fi.Mode()&os.ModeNamedPipe == 0 && *savePath == "" {
 		printText(*isSilent, "Input is empty!\n\n", "Error")
 		flag.PrintDefaults()
 
@@ -81,6 +81,10 @@ func main() {
 
 			printText(*isSilent, "Cache File Created", "Info")
 		}
+	}
+
+	if *input == "" && fi.Mode()&os.ModeNamedPipe == 0 {
+		os.Exit(0)
 	}
 
 	if *output != "terminal" {

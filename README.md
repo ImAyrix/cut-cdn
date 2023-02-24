@@ -1,6 +1,10 @@
 # Cut CDN
 ✂️ Removing CDN IPs from the list of IP addresses
 
+The tool's basic functionality would involve taking the list of IP addresses as input and then checking to determine whether the IP is behind a CDN.
+This tool will gather all CIDR of the most-known CDN providers and check your provided list with them.
+This is a handy tool for bug hunters.
+
 ## CDN Providers
 * Akamai
 * Amazon
@@ -46,20 +50,33 @@ go install github.com/ImAyrix/cut-cdn@latest
 ```
 
 ## Usage
-Striping CDN IPs from file (Online)
-```bash
-cut-cdn -i allIP.txt -o output.txt -s allCIDR.txt -t 20
-```
+### Online mode
+Check your IP list with the latest IP ranges of CDN providers:
 
-Striping CDN IPs from file (Offline)
-```bash
-cut-cdn -i allIP.txt -o output.txt -c allCIDR.txt -t 20
-```
-
-Striping CDN IPs from stdin
-```bash
-cat allIP.txt | cut-cdn -o output.txt -t 20
-```
-
-## More Info
-For better results, you should start using your VPN/Proxy service if you live in a country that has been sanctioned/restricted by CDNs.
++ Single IP
+    ```bash 
+    cut-cdn -i 127.0.0.1
+    echo "127.0.0.1" | cut-cdn
+    ```
++ List of IPs
+    ```bash
+  cut-cdn -i allIP.txt
+  cat IPlist.txt | cut-cdn
+    ```
++ To store results use `-o` option
+    ```bash
+    cut-cdn -i allIP.txt -o output.txt
+    ```
++ To set concurrency use -t option (Default is 1)
+  ```bash
+  cut-cdn -i allIP.txt -o output.txt -t 20
+  ```
+### Offline mode
+1. To check IPs in offline mode you should save CDNs IP ranges in a file
+    ```bash
+    cut-cdn -s allCIDR.txt
+   ```
+2. After that you can run it in offline mode by `-c` pointing to the CIDR file
+    ```bash
+   cut-cdn -i allIP.txt -o output.txt -t 20 -c allCIDR.txt
+   ```
