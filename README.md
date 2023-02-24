@@ -50,6 +50,10 @@ go install github.com/ImAyrix/cut-cdn@latest
 ```
 
 ## Usage
+
+![cut-cdn](https://user-images.githubusercontent.com/89543912/221229391-5bb70bb1-5b6f-43ae-a912-0d1663498cad.png)
+
+
 ### Online mode
 Check your IP list with the latest IP ranges of CDN providers:
 
