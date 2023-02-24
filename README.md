@@ -1,5 +1,13 @@
-# Cut CDN
-✂️ Removing CDN IPs from the list of IP addresses
+<h4 align="center"> Removing CDN IPs from the list of IP addresses </h4>
+<p align="center">
+  <a href="#cdn-providers">CDN Providers</a> •
+  <a href="#installation">Install</a> •
+  <a href="#usage-parameters">Usage Parameters</a> •
+  <a href="#usage">Usage</a> •
+  <a href="https://t.me/ImAyrix">Contact me</a>
+</p>
+
+---
 
 The tool's basic functionality would involve taking the list of IP addresses as input and then checking to determine whether the IP is behind a CDN.
 This tool will gather all CIDR of the most-known CDN providers and check your provided list with them.
