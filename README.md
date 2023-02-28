@@ -3,6 +3,7 @@
   <a href="#cdn-providers">CDN Providers</a> •
   <a href="#installation">Install</a> •
   <a href="#usage-parameters">Usage Parameters</a> •
+  <a href="#preview">Preview</a> •
   <a href="#usage">Usage</a> •
   <a href="https://t.me/ImAyrix">Contact me</a>
 </p>
@@ -57,9 +58,11 @@ go install github.com/ImAyrix/cut-cdn@latest
         Number Of Thread [Number] (default 1)
 ```
 
-## Usage
+## Preview
 
 ![cut-cdn](https://user-images.githubusercontent.com/89543912/221229391-5bb70bb1-5b6f-43ae-a912-0d1663498cad.png)
+
+## Usage
 
 
 ### Online mode
@@ -73,7 +76,7 @@ Check your IP list with the latest IP ranges of CDN providers:
 + List of IPs
     ```bash
   cut-cdn -i allIP.txt
-  cat IPlist.txt | cut-cdn
+  cat allIP.txt | cut-cdn
     ```
 + To store results use `-o` option
     ```bash
