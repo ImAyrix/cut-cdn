@@ -120,164 +120,55 @@ func main() {
 	printText(*isSilent, "Github page: https://github.com/ImAyrix/cut-cdn", "Print")
 }
 
+type fetcher func(url string) []*net.IPNet
+
+type CDN struct {
+	url    string
+	sender fetcher
+}
+
+var CDNS = []CDN{
+	{"https://api.fastly.com/public-ip-list", sendRequest},
+	{"https://www.gstatic.com/ipranges/cloud.json", sendRequest},
+	{"https://www.gstatic.com/ipranges/goog.json", sendRequest},
+	{"https://ip-ranges.amazonaws.com/ip-ranges.json", sendRequest},
+	{"https://www.cloudflare.com/ips-v4", sendRequest},
+	{"https://d7uri8nf7uskq.cloudfront.net/tools/list-cloudfront-ips", sendRequest},
+	{"https://support.maxcdn.com/hc/en-us/article_attachments/360051920551/maxcdn_ips.txt", sendRequest},
+	{"https://www.bing.com/toolbox/bingbot.json", sendRequest},
+	{"https://www.arvancloud.ir/en/ips.txt", readFileUrl},
+	{"https://api.bgpview.io/asn/AS12222/prefixes", sendRequest},
+	{"https://api.bgpview.io/asn/AS60626/prefixes", sendRequest},
+	{"https://api.bgpview.io/asn/AS262254/prefixes", sendRequest},
+	{"https://api.bgpview.io/asn/AS200449/prefixes", sendRequest},
+	{"https://api.bgpview.io/asn/AS12989/prefixes", sendRequest},
+	{"https://api.bgpview.io/asn/AS59796/prefixes", sendRequest},
+	{"https://api.bgpview.io/asn/AS30148/prefixes", sendRequest},
+	{"https://api.bgpview.io/asn/AS136165/prefixes", sendRequest},
+	{"https://cdn.nuclei.sh", sendRequest},
+	{"https://www.microsoft.com/en-us/download/confirmation.aspx?id=56519", readFileUrl},
+	{"https://download.microsoft.com/download/0/1/8/018E208D-54F8-44CD-AA26-CD7BC9524A8C/PublicIPs_20200824.xml", readFileUrl},
+	{"https://digitalocean.com/geo/google.csv", readFileUrl},
+	{"https://docs.oracle.com/en-us/iaas/tools/public_ip_ranges.json", readFileUrl},
+}
+
 func loadAllCDN() []*net.IPNet {
+
 	var wg sync.WaitGroup
 	var allRanges []*net.IPNet
+
 	cidrChan := make(chan []*net.IPNet, 23)
+	wg.Add(len(CDNS))
 
-	wg.Add(1)
-	go func() {
-		cidr := sendRequest("https://api.fastly.com/public-ip-list")
-		cidrChan <- cidr
-		wg.Done()
-	}()
+	for _, cdn := range CDNS {
+		cdn := cdn
+		go func() {
+			defer wg.Done()
+			cidr := cdn.sender(cdn.url)
+			cidrChan <- cidr
+		}()
 
-	wg.Add(1)
-	go func() {
-		cidr := sendRequest("https://www.gstatic.com/ipranges/cloud.json")
-		cidrChan <- cidr
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		cidr := sendRequest("https://www.gstatic.com/ipranges/goog.json")
-		cidrChan <- cidr
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		cidr := sendRequest("https://ip-ranges.amazonaws.com/ip-ranges.json")
-		cidrChan <- cidr
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		cidr := sendRequest("https://www.cloudflare.com/ips-v4")
-		cidrChan <- cidr
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		cidr := sendRequest("https://d7uri8nf7uskq.cloudfront.net/tools/list-cloudfront-ips")
-		cidrChan <- cidr
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		cidr := sendRequest("https://support.maxcdn.com/hc/en-us/article_attachments/360051920551/maxcdn_ips.txt")
-		cidrChan <- cidr
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		cidr := sendRequest("https://www.bing.com/toolbox/bingbot.json")
-		cidrChan <- cidr
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		cidr := readFileUrl("https://www.arvancloud.ir/en/ips.txt")
-		cidrChan <- cidr
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		cidr := sendRequest("https://api.bgpview.io/asn/AS12222/prefixes")
-		cidrChan <- cidr
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		cidr := sendRequest("https://api.bgpview.io/asn/AS60626/prefixes")
-		cidrChan <- cidr
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		cidr := sendRequest("https://api.bgpview.io/asn/AS262254/prefixes")
-		cidrChan <- cidr
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		cidr := sendRequest("https://api.bgpview.io/asn/AS200449/prefixes")
-		cidrChan <- cidr
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		cidr := sendRequest("https://api.bgpview.io/asn/AS12989/prefixes")
-		cidrChan <- cidr
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		cidr := sendRequest("https://api.bgpview.io/asn/AS59796/prefixes")
-		cidrChan <- cidr
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		cidr := sendRequest("https://api.bgpview.io/asn/AS30148/prefixes")
-		cidrChan <- cidr
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		cidr := sendRequest("https://api.bgpview.io/asn/AS136165/prefixes")
-		cidrChan <- cidr
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		cidr := sendRequest("https://cdn.nuclei.sh")
-		cidrChan <- cidr
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		cidr := readFileUrl("https://www.microsoft.com/en-us/download/confirmation.aspx?id=56519")
-		cidrChan <- cidr
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		cidr := readFileUrl("https://download.microsoft.com/download/0/1/8/018E208D-54F8-44CD-AA26-CD7BC9524A8C/PublicIPs_20200824.xml")
-		cidrChan <- cidr
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		cidr := readFileUrl("https://digitalocean.com/geo/google.csv")
-		cidrChan <- cidr
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		cidr := readFileUrl("https://docs.oracle.com/en-us/iaas/tools/public_ip_ranges.json")
-		cidrChan <- cidr
-		wg.Done()
-	}()
+	}
 
 	wg.Add(1)
 	go func() {
