@@ -30,7 +30,7 @@ const (
 
 var wg sync.WaitGroup
 
-const VERSION = "1.0.10"
+const VERSION = "1.0.11"
 
 func main() {
 	var allRange []*net.IPNet
@@ -305,7 +305,7 @@ func checkUpdate(isSilent bool) {
 	checkError(err)
 	body := string(respByte)
 
-	re, e := regexp.Compile(`cut-cdn\s+v(\d\.\d\.\d)`)
+	re, e := regexp.Compile(`cut-cdn\s+v(\d\.\d\.\d+)`)
 	checkError(e)
 
 	if re.FindStringSubmatch(body)[1] != VERSION {
