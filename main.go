@@ -173,7 +173,10 @@ func loadAllCDN() []*net.IPNet {
 	wg.Add(1)
 	go func() {
 		incapsulaIPUrl := "https://my.incapsula.com/api/integration/v1/ips"
-		resp, err := http.Post(incapsulaIPUrl, "application/x-www-form-urlencoded", bytes.NewBuffer([]byte("resp_format=text")))
+		client := &http.Client{
+			Timeout: 30 * time.Second,
+		}
+		resp, err := client.Post(incapsulaIPUrl, "application/x-www-form-urlencoded", bytes.NewBuffer([]byte("resp_format=text")))
 		checkError(err)
 		body, err := io.ReadAll(resp.Body)
 		checkError(err)
