@@ -30,7 +30,7 @@ const (
 
 var wg sync.WaitGroup
 
-const VERSION = "1.0.13"
+const VERSION = "1.0.14"
 
 func main() {
 	var allRange []*net.IPNet
@@ -146,7 +146,8 @@ var CDNS = []CDN{
 	{"https://api.bgpview.io/asn/AS30148/prefixes", sendRequest},
 	{"https://api.bgpview.io/asn/AS136165/prefixes", sendRequest},
 	{"https://api.bgpview.io/asn/AS16625/prefixes", sendRequest},
-	{"https://api.bgpview.io/asn/AS16625/prefixes", sendRequest},
+	{"https://api.bgpview.io/asn/AS20940/prefixes", sendRequest},
+	{"https://ayrix.info/cut-cdn-data/", sendRequest},
 	{"https://cdn.nuclei.sh", sendRequest},
 	{"https://www.microsoft.com/en-us/download/confirmation.aspx?id=56519", readFileUrl},
 	{"https://download.microsoft.com/download/0/1/8/018E208D-54F8-44CD-AA26-CD7BC9524A8C/PublicIPs_20200824.xml", readFileUrl},
@@ -159,7 +160,7 @@ func loadAllCDN() []*net.IPNet {
 	var wg sync.WaitGroup
 	var allRanges []*net.IPNet
 
-	cidrChan := make(chan []*net.IPNet, 23)
+	cidrChan := make(chan []*net.IPNet, len(CDNS)+1)
 	wg.Add(len(CDNS))
 
 	for _, cdn := range CDNS {
