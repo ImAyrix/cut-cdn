@@ -145,6 +145,8 @@ var CDNS = []CDN{
 	{"https://api.bgpview.io/asn/AS59796/prefixes", sendRequest},
 	{"https://api.bgpview.io/asn/AS30148/prefixes", sendRequest},
 	{"https://api.bgpview.io/asn/AS136165/prefixes", sendRequest},
+	{"https://api.bgpview.io/asn/AS16625/prefixes", sendRequest},
+	{"https://api.bgpview.io/asn/AS16625/prefixes", sendRequest},
 	{"https://cdn.nuclei.sh", sendRequest},
 	{"https://www.microsoft.com/en-us/download/confirmation.aspx?id=56519", readFileUrl},
 	{"https://download.microsoft.com/download/0/1/8/018E208D-54F8-44CD-AA26-CD7BC9524A8C/PublicIPs_20200824.xml", readFileUrl},
