@@ -30,7 +30,7 @@ const (
 
 var wg sync.WaitGroup
 
-const VERSION = "1.0.14"
+const VERSION = "1.0.15"
 
 func main() {
 	var allRange []*net.IPNet
@@ -280,12 +280,13 @@ func checkAndWrite(allCidr []*net.IPNet, channel chan string, output string) {
 func readInput(isSilent bool, input string) []string {
 	printText(isSilent, "Input Parsing", "Info")
 
+	input = strings.Trim(input, " ")
 	if input == "STDIN" {
 		var result []string
 		scanner := bufio.NewScanner(os.Stdin)
 		for scanner.Scan() {
 			ip := scanner.Text()
-			result = append(result, ip)
+			result = append(result, strings.Trim(ip, " "))
 		}
 		printText(isSilent, "Input Parsed", "Info")
 		return result
@@ -299,7 +300,12 @@ func readInput(isSilent bool, input string) []string {
 	fileByte, err := os.ReadFile(input)
 	checkError(err)
 	printText(isSilent, "Input Parsed", "Info")
-	return strings.Split(string(fileByte), "\n")
+	var result []string
+	fileData := strings.Split(string(fileByte), "\n")
+	for _, v := range fileData {
+		result = append(result, strings.Trim(v, " "))
+	}
+	return result
 }
 
 func checkUpdate(isSilent bool) {
