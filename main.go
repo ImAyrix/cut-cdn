@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/projectdiscovery/gologger"
 	"io"
-	"log"
 	"net"
 	"net/http"
 	"os"
@@ -30,7 +29,7 @@ const (
 
 var wg sync.WaitGroup
 
-const VERSION = "1.0.15"
+const VERSION = "1.0.16"
 
 func main() {
 	var allRange []*net.IPNet
@@ -180,11 +179,12 @@ func loadAllCDN() []*net.IPNet {
 			Timeout: 30 * time.Second,
 		}
 		resp, err := client.Post(incapsulaIPUrl, "application/x-www-form-urlencoded", bytes.NewBuffer([]byte("resp_format=text")))
-		checkError(err)
-		body, err := io.ReadAll(resp.Body)
-		checkError(err)
-		cidr := regexIp(string(body))
-		cidrChan <- cidr
+		if !checkError(err) {
+			body, err := io.ReadAll(resp.Body)
+			checkError(err)
+			cidr := regexIp(string(body))
+			cidrChan <- cidr
+		}
 		wg.Done()
 	}()
 
@@ -205,7 +205,9 @@ func sendRequest(url string) []*net.IPNet {
 		Timeout: 30 * time.Second,
 	}
 	resp, err := client.Do(req)
-	checkError(err)
+	if checkError(err) {
+		return []*net.IPNet{}
+	}
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		checkError(err)
@@ -226,7 +228,9 @@ func readFileUrl(url string) []*net.IPNet {
 	}
 	// Put content on file
 	resp, err := client.Get(url)
-	checkError(err)
+	if checkError(err) {
+		return []*net.IPNet{}
+	}
 
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
@@ -331,10 +335,12 @@ func checkUpdate(isSilent bool) {
 
 }
 
-func checkError(e error) {
+func checkError(e error) bool {
 	if e != nil {
-		log.Fatal(e.Error())
+		gologger.Error().Msg(e.Error())
+		return true
 	}
+	return false
 }
 
 func printText(isSilent bool, text string, textType string) {
