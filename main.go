@@ -29,7 +29,7 @@ const (
 
 var wg sync.WaitGroup
 
-const VERSION = "1.0.16"
+const VERSION = "1.0.17"
 
 func main() {
 	var allRange []*net.IPNet
@@ -146,6 +146,9 @@ var CDNS = []CDN{
 	{"https://api.bgpview.io/asn/AS136165/prefixes", sendRequest},
 	{"https://api.bgpview.io/asn/AS16625/prefixes", sendRequest},
 	{"https://api.bgpview.io/asn/AS20940/prefixes", sendRequest},
+	{"https://api.bgpview.io/asn/AS36408/prefixes", sendRequest},
+	{"https://cachefly.cachefly.net/ips/rproxy.txt", sendRequest},
+	{"https://docs.imperva.com/en-US/bundle/z-kb-articles-km/page/c85245b7.html", sendRequest},
 	{"https://ayrix.info/cut-cdn-data/", sendRequest},
 	{"https://cdn.nuclei.sh", sendRequest},
 	{"https://www.microsoft.com/en-us/download/confirmation.aspx?id=56519", readFileUrl},
@@ -156,24 +159,19 @@ var CDNS = []CDN{
 
 func loadAllCDN() []*net.IPNet {
 
-	var wg sync.WaitGroup
 	var allRanges []*net.IPNet
-
 	cidrChan := make(chan []*net.IPNet, len(CDNS)+1)
-	wg.Add(len(CDNS))
 
 	for _, cdn := range CDNS {
 		cdn := cdn
-		go func() {
-			defer wg.Done()
+		func() {
 			cidr := cdn.sender(cdn.url)
 			cidrChan <- cidr
 		}()
 
 	}
 
-	wg.Add(1)
-	go func() {
+	func() {
 		incapsulaIPUrl := "https://my.incapsula.com/api/integration/v1/ips"
 		client := &http.Client{
 			Timeout: 30 * time.Second,
@@ -185,10 +183,8 @@ func loadAllCDN() []*net.IPNet {
 			cidr := regexIp(string(body))
 			cidrChan <- cidr
 		}
-		wg.Done()
 	}()
 
-	wg.Wait()
 	close(cidrChan)
 
 	for cidr := range cidrChan {

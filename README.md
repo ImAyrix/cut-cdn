@@ -20,12 +20,15 @@ This is a handy tool for bug hunters.
 * Arvancloud
 * Azure CDN
 * Bing
+* CacheFly
+* CDNetworks
 * Cloudflare
 * Cloudfront
 * DDoS Guard
 * Digitalocean
 * Fastly
 * Google cloud
+* Imperva
 * Incapsula
 * Leaseweb
 * Maxcdn
