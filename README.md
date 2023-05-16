@@ -59,6 +59,8 @@ go install github.com/ImAyrix/cut-cdn@latest
         show only IPs in output
   -t int
         Number Of Thread [Number] (default 1)
+  -version
+        show version of cut-cdn
 ```
 
 ## Preview

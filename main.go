@@ -29,7 +29,7 @@ const (
 
 var wg sync.WaitGroup
 
-const VERSION = "1.0.17"
+const VERSION = "1.0.18"
 
 func main() {
 	var allRange []*net.IPNet
@@ -40,10 +40,16 @@ func main() {
 	cachePath := flag.String("c", "", "Use cache file (offline) [Path]")
 	thread := flag.Int("t", 1, "Number Of Thread [Number]")
 	isSilent := flag.Bool("silent", false, "show only IPs in output")
+	showVersion := flag.Bool("version", false, "show version of cut-cdn")
 	flag.Parse()
 
 	fi, err := os.Stdin.Stat()
 	checkError(err)
+
+	if *showVersion {
+		printText(false, "Current Version: v"+VERSION, "Info")
+		os.Exit(0)
+	}
 
 	if *input == "" && fi.Mode()&os.ModeNamedPipe == 0 && *savePath == "" {
 		printText(*isSilent, "Input is empty!\n\n", "Error")
@@ -211,6 +217,9 @@ func sendRequest(url string) []*net.IPNet {
 
 	body, err := io.ReadAll(resp.Body)
 	checkError(err)
+	if strings.Contains(url, "bgpview") {
+		time.Sleep(2 * time.Second)
+	}
 	return regexIp(string(body))
 }
 
