@@ -29,7 +29,7 @@ const (
 
 var wg sync.WaitGroup
 
-const VERSION = "1.0.18"
+const VERSION = "1.0.19"
 
 func main() {
 	var allRange []*net.IPNet
@@ -142,20 +142,10 @@ var CDNS = []CDN{
 	{"https://support.maxcdn.com/hc/en-us/article_attachments/360051920551/maxcdn_ips.txt", sendRequest},
 	{"https://www.bing.com/toolbox/bingbot.json", sendRequest},
 	{"https://www.arvancloud.ir/en/ips.txt", readFileUrl},
-	{"https://api.bgpview.io/asn/AS12222/prefixes", sendRequest},
-	{"https://api.bgpview.io/asn/AS60626/prefixes", sendRequest},
-	{"https://api.bgpview.io/asn/AS262254/prefixes", sendRequest},
-	{"https://api.bgpview.io/asn/AS200449/prefixes", sendRequest},
-	{"https://api.bgpview.io/asn/AS12989/prefixes", sendRequest},
-	{"https://api.bgpview.io/asn/AS59796/prefixes", sendRequest},
-	{"https://api.bgpview.io/asn/AS30148/prefixes", sendRequest},
-	{"https://api.bgpview.io/asn/AS136165/prefixes", sendRequest},
-	{"https://api.bgpview.io/asn/AS16625/prefixes", sendRequest},
-	{"https://api.bgpview.io/asn/AS20940/prefixes", sendRequest},
-	{"https://api.bgpview.io/asn/AS36408/prefixes", sendRequest},
 	{"https://cachefly.cachefly.net/ips/rproxy.txt", sendRequest},
 	{"https://docs.imperva.com/en-US/bundle/z-kb-articles-km/page/c85245b7.html", sendRequest},
-	{"https://ayrix.info/cut-cdn-data/", sendRequest},
+	{"https://ayrix.info/cut-cdn-data/1/", sendRequest},
+	{"https://ayrix.info/cut-cdn-data/2/", sendRequest},
 	{"https://cdn.nuclei.sh", sendRequest},
 	{"https://www.microsoft.com/en-us/download/confirmation.aspx?id=56519", readFileUrl},
 	{"https://download.microsoft.com/download/0/1/8/018E208D-54F8-44CD-AA26-CD7BC9524A8C/PublicIPs_20200824.xml", readFileUrl},
@@ -217,9 +207,6 @@ func sendRequest(url string) []*net.IPNet {
 
 	body, err := io.ReadAll(resp.Body)
 	checkError(err)
-	if strings.Contains(url, "bgpview") {
-		time.Sleep(2 * time.Second)
-	}
 	return regexIp(string(body))
 }
 
