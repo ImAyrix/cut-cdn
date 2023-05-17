@@ -29,7 +29,7 @@ const (
 
 var wg sync.WaitGroup
 
-const VERSION = "1.0.20"
+const VERSION = "1.0.21"
 
 func main() {
 	var allRange []*net.IPNet
@@ -147,7 +147,7 @@ var CDNS = []CDN{
 	{"https://ayrix.info/cut-cdn-data/1/", sendRequest},
 	{"https://ayrix.info/cut-cdn-data/2/", sendRequest},
 	{"https://cdn.nuclei.sh", sendRequest},
-	{"https://www.microsoft.com/en-us/download/confirmation.aspx?id=56519", readFileUrl},
+	{"https://download.microsoft.com/download/7/1/D/71D86715-5596-4529-9B13-DA13A5DE5B63/ServiceTags_Public_20230515.json", readFileUrl},
 	{"https://download.microsoft.com/download/0/1/8/018E208D-54F8-44CD-AA26-CD7BC9524A8C/PublicIPs_20200824.xml", readFileUrl},
 	{"https://digitalocean.com/geo/google.csv", readFileUrl},
 	{"https://docs.oracle.com/en-us/iaas/tools/public_ip_ranges.json", readFileUrl},
