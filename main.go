@@ -29,7 +29,7 @@ const (
 
 var wg sync.WaitGroup
 
-const VERSION = "1.0.19"
+const VERSION = "1.0.20"
 
 func main() {
 	var allRange []*net.IPNet
@@ -155,19 +155,24 @@ var CDNS = []CDN{
 
 func loadAllCDN() []*net.IPNet {
 
+	var wg sync.WaitGroup
 	var allRanges []*net.IPNet
 	cidrChan := make(chan []*net.IPNet, len(CDNS)+1)
+	wg.Add(len(CDNS))
 
 	for _, cdn := range CDNS {
 		cdn := cdn
-		func() {
+		go func() {
+			defer wg.Done()
 			cidr := cdn.sender(cdn.url)
 			cidrChan <- cidr
 		}()
 
 	}
 
-	func() {
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
 		incapsulaIPUrl := "https://my.incapsula.com/api/integration/v1/ips"
 		client := &http.Client{
 			Timeout: 30 * time.Second,
@@ -181,6 +186,7 @@ func loadAllCDN() []*net.IPNet {
 		}
 	}()
 
+	wg.Wait()
 	close(cidrChan)
 
 	for cidr := range cidrChan {
