@@ -29,7 +29,7 @@ const (
 
 var wg sync.WaitGroup
 
-const VERSION = "1.0.21"
+const VERSION = "1.0.22"
 
 func main() {
 	var allRange []*net.IPNet
@@ -78,7 +78,9 @@ func main() {
 			checkError(err)
 			var allLineRange string
 			for _, v := range allRange {
-				allLineRange += v.String() + "\n"
+				if !strings.Contains(allLineRange, v.String()) {
+					allLineRange += v.String() + "\n"
+				}
 			}
 
 			_, err = f.WriteString(allLineRange)
@@ -142,6 +144,7 @@ var CDNS = []CDN{
 	{"https://support.maxcdn.com/hc/en-us/article_attachments/360051920551/maxcdn_ips.txt", sendRequest},
 	{"https://www.bing.com/toolbox/bingbot.json", sendRequest},
 	{"https://www.arvancloud.ir/en/ips.txt", readFileUrl},
+	{"http://edge.sotoon.ir/ip-list.json", sendRequest},
 	{"https://cachefly.cachefly.net/ips/rproxy.txt", sendRequest},
 	{"https://docs.imperva.com/en-US/bundle/z-kb-articles-km/page/c85245b7.html", sendRequest},
 	{"https://ayrix.info/cut-cdn-data/1/", sendRequest},

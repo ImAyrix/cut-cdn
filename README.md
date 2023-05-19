@@ -21,6 +21,7 @@ This is a handy tool for bug hunters.
 * Azure CDN
 * Bing
 * CacheFly
+* CafeBazaar (sotoon)
 * CDNetworks
 * Cloudflare
 * Cloudfront
