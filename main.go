@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"github.com/projectdiscovery/goflags"
 	"github.com/projectdiscovery/gologger"
 	"io"
 	"net"
@@ -29,52 +30,125 @@ const (
 
 var wg sync.WaitGroup
 
-const VERSION = "1.0.22"
+type fetcher func(url string) []*net.IPNet
+type CDN struct {
+	url    string
+	sender fetcher
+}
+
+var CDNS = []CDN{}
+var input, output, savePath, cachePath, provider, providers, append_provider, append_providers string
+var isSilent, showVersion bool
+var thread int
+
+const VERSION = "1.0.23"
 
 func main() {
 	var allRange []*net.IPNet
 
-	input := flag.String("i", "", "Input [Filename | IP]")
-	output := flag.String("o", "terminal", "Output [Filename]")
-	savePath := flag.String("s", "", "Save all cidr [Path]")
-	cachePath := flag.String("c", "", "Use cache file (offline) [Path]")
-	thread := flag.Int("t", 1, "Number Of Thread [Number]")
-	isSilent := flag.Bool("silent", false, "show only IPs in output")
-	showVersion := flag.Bool("version", false, "show version of cut-cdn")
-	flag.Parse()
+	flagSet := goflags.NewFlagSet()
+	flagSet.SetDescription("Removing CDN IPs from the list of IP addresses")
+	createGroup(flagSet, "input", "Input",
+		flagSet.StringVar(&input, "i", "", "Input [Filename | IP]"),
+		flagSet.StringVar(&provider, "pu", "", "Provider CIDRs page [URL]"),
+		flagSet.StringVar(&providers, "pl", "", "Providers CIDRs pages [File]"),
+		flagSet.StringVar(&append_provider, "apu", "", "Append provider to the default providers [URL]"),
+		flagSet.StringVar(&append_providers, "apl", "", "Append list of providers to the default providers [File]"),
+		flagSet.StringVar(&cachePath, "c", "", "Use cache file (offline) [File]"),
+	)
 
+	createGroup(flagSet, "rate-limit", "Rate-Limit",
+		flagSet.IntVar(&thread, "t", 1, "Number Of Thread [Number]"),
+	)
+
+	createGroup(flagSet, "output", "Output",
+		flagSet.StringVar(&output, "o", "CLI", "File to write output to (optional)"),
+		flagSet.StringVar(&savePath, "s", "", "Save all CIDRs [File]"),
+	)
+
+	createGroup(flagSet, "debug", "Debug",
+		flagSet.BoolVar(&isSilent, "silent", false, "Show only IPs in output"),
+		flagSet.BoolVar(&showVersion, "version", false, "Show version of cut-cdn"),
+	)
+
+	_ = flagSet.Parse()
 	fi, err := os.Stdin.Stat()
 	checkError(err)
 
-	if *showVersion {
+	if showVersion {
 		printText(false, "Current Version: v"+VERSION, "Info")
 		os.Exit(0)
 	}
 
-	if *input == "" && fi.Mode()&os.ModeNamedPipe == 0 && *savePath == "" {
-		printText(*isSilent, "Input is empty!\n\n", "Error")
+	if input == "" && fi.Mode()&os.ModeNamedPipe == 0 && savePath == "" {
+		printText(isSilent, "Input is empty!\n\n", "Error")
 		flag.PrintDefaults()
-
-		fmt.Println(output)
-
 		os.Exit(1)
 	}
-	checkUpdate(*isSilent)
+	checkUpdate(isSilent)
 
-	if *cachePath != "" {
-		printText(*isSilent, "Loading Cache File", "Info")
-		cache, err := os.ReadFile(*cachePath)
+	if provider != "" {
+		CDNS = append(CDNS, CDN{provider, sendRequest})
+	} else if providers != "" {
+		fileByte, err := os.ReadFile(providers)
+		checkError(err)
+		fileData := strings.Split(string(fileByte), "\n")
+		for _, v := range fileData {
+			if v != "" {
+				CDNS = append(CDNS, CDN{v, sendRequest})
+			}
+		}
+	} else {
+		CDNS = []CDN{
+			{"https://api.fastly.com/public-ip-list", sendRequest},
+			{"https://www.gstatic.com/ipranges/cloud.json", sendRequest},
+			{"https://www.gstatic.com/ipranges/goog.json", sendRequest},
+			{"https://ip-ranges.amazonaws.com/ip-ranges.json", sendRequest},
+			{"https://www.cloudflare.com/ips-v4", sendRequest},
+			{"https://d7uri8nf7uskq.cloudfront.net/tools/list-cloudfront-ips", sendRequest},
+			{"https://support.maxcdn.com/hc/en-us/article_attachments/360051920551/maxcdn_ips.txt", sendRequest},
+			{"https://www.bing.com/toolbox/bingbot.json", sendRequest},
+			{"https://www.arvancloud.ir/en/ips.txt", readFileUrl},
+			{"http://edge.sotoon.ir/ip-list.json", sendRequest},
+			{"https://cachefly.cachefly.net/ips/rproxy.txt", sendRequest},
+			{"https://docs.imperva.com/en-US/bundle/z-kb-articles-km/page/c85245b7.html", sendRequest},
+			{"https://ayrix.info/cut-cdn-data/1/", sendRequest},
+			{"https://ayrix.info/cut-cdn-data/2/", sendRequest},
+			{"https://cdn.nuclei.sh", sendRequest},
+			{"https://download.microsoft.com/download/7/1/D/71D86715-5596-4529-9B13-DA13A5DE5B63/ServiceTags_Public_20230515.json", readFileUrl},
+			{"https://download.microsoft.com/download/0/1/8/018E208D-54F8-44CD-AA26-CD7BC9524A8C/PublicIPs_20200824.xml", readFileUrl},
+			{"https://digitalocean.com/geo/google.csv", readFileUrl},
+			{"https://docs.oracle.com/en-us/iaas/tools/public_ip_ranges.json", readFileUrl},
+		}
+		if append_provider != "" {
+			CDNS = append(CDNS, CDN{append_provider, sendRequest})
+		}
+		if append_providers != "" {
+			fileByte, err := os.ReadFile(append_providers)
+			checkError(err)
+			fileData := strings.Split(string(fileByte), "\n")
+			for _, v := range fileData {
+				if v != "" {
+					CDNS = append(CDNS, CDN{v, sendRequest})
+				}
+			}
+		}
+	}
+
+	if cachePath != "" {
+		printText(isSilent, "Loading Cache File", "Info")
+		cache, err := os.ReadFile(cachePath)
 		checkError(err)
 		allRange = regexIp(string(cache))
-		printText(*isSilent, "Cache File Loaded", "Info")
+		printText(isSilent, "Cache File Loaded", "Info")
 	} else {
-		printText(*isSilent, "Loading All CDN Range", "Info")
+		printText(isSilent, "Loading All CDN Range", "Info")
 		allRange = loadAllCDN()
-		printText(*isSilent, "All CDN Range Loaded", "Info")
+		printText(isSilent, "All CDN Range Loaded", "Info")
 
-		if *savePath != "" {
-			printText(*isSilent, "Creating Cache File", "Info")
-			f, err := os.Create(*savePath)
+		if savePath != "" {
+			printText(isSilent, "Creating Cache File", "Info")
+			f, err := os.Create(savePath)
 			checkError(err)
 			var allLineRange string
 			for _, v := range allRange {
@@ -86,24 +160,24 @@ func main() {
 			_, err = f.WriteString(allLineRange)
 			checkError(err)
 
-			printText(*isSilent, "Cache File Created", "Info")
+			printText(isSilent, "Cache File Created", "Info")
 		}
 	}
 
-	if *input == "" && fi.Mode()&os.ModeNamedPipe == 0 {
+	if input == "" && fi.Mode()&os.ModeNamedPipe == 0 {
 		os.Exit(0)
 	}
 
-	if *output != "terminal" {
-		_, err := os.Create(*output)
+	if output != "CLI" {
+		_, err := os.Create(output)
 		checkError(err)
 	}
 
 	var allIpInput []string
 	if fi.Mode()&os.ModeNamedPipe != 0 {
-		allIpInput = readInput(*isSilent, "STDIN")
+		allIpInput = readInput(isSilent, "STDIN")
 	} else {
-		allIpInput = readInput(*isSilent, *input)
+		allIpInput = readInput(isSilent, input)
 	}
 	channel := make(chan string, len(allIpInput))
 	for _, ip := range allIpInput {
@@ -112,48 +186,19 @@ func main() {
 
 	close(channel)
 
-	printText(*isSilent, "Start Checking IPs", "Info")
-	if *output == "terminal" {
-		printText(*isSilent, "", "Print")
-		printText(*isSilent, colorGreen+"[⚡] All IPs Not Behind CDN ⤵"+colorReset, "Print")
+	printText(isSilent, "Start Checking IPs", "Info")
+	if output == "CLI" {
+		printText(isSilent, "", "Print")
+		printText(isSilent, colorGreen+"[⚡] All IPs Not Behind CDN ⤵"+colorReset, "Print")
 	}
-	for i := 0; i < *thread; i++ {
+	for i := 0; i < thread; i++ {
 		wg.Add(1)
-		go checkAndWrite(allRange, channel, *output)
+		go checkAndWrite(allRange, channel, output)
 	}
 	wg.Wait()
 
-	printText(*isSilent, "", "Print")
-	printText(*isSilent, "Github page: https://github.com/ImAyrix/cut-cdn", "Print")
-}
-
-type fetcher func(url string) []*net.IPNet
-
-type CDN struct {
-	url    string
-	sender fetcher
-}
-
-var CDNS = []CDN{
-	{"https://api.fastly.com/public-ip-list", sendRequest},
-	{"https://www.gstatic.com/ipranges/cloud.json", sendRequest},
-	{"https://www.gstatic.com/ipranges/goog.json", sendRequest},
-	{"https://ip-ranges.amazonaws.com/ip-ranges.json", sendRequest},
-	{"https://www.cloudflare.com/ips-v4", sendRequest},
-	{"https://d7uri8nf7uskq.cloudfront.net/tools/list-cloudfront-ips", sendRequest},
-	{"https://support.maxcdn.com/hc/en-us/article_attachments/360051920551/maxcdn_ips.txt", sendRequest},
-	{"https://www.bing.com/toolbox/bingbot.json", sendRequest},
-	{"https://www.arvancloud.ir/en/ips.txt", readFileUrl},
-	{"http://edge.sotoon.ir/ip-list.json", sendRequest},
-	{"https://cachefly.cachefly.net/ips/rproxy.txt", sendRequest},
-	{"https://docs.imperva.com/en-US/bundle/z-kb-articles-km/page/c85245b7.html", sendRequest},
-	{"https://ayrix.info/cut-cdn-data/1/", sendRequest},
-	{"https://ayrix.info/cut-cdn-data/2/", sendRequest},
-	{"https://cdn.nuclei.sh", sendRequest},
-	{"https://download.microsoft.com/download/7/1/D/71D86715-5596-4529-9B13-DA13A5DE5B63/ServiceTags_Public_20230515.json", readFileUrl},
-	{"https://download.microsoft.com/download/0/1/8/018E208D-54F8-44CD-AA26-CD7BC9524A8C/PublicIPs_20200824.xml", readFileUrl},
-	{"https://digitalocean.com/geo/google.csv", readFileUrl},
-	{"https://docs.oracle.com/en-us/iaas/tools/public_ip_ranges.json", readFileUrl},
+	printText(isSilent, "", "Print")
+	printText(isSilent, "Github page: https://github.com/ImAyrix/cut-cdn", "Print")
 }
 
 func loadAllCDN() []*net.IPNet {
@@ -268,7 +313,7 @@ func checkAndWrite(allCidr []*net.IPNet, channel chan string, output string) {
 			}
 		}
 		if !isIpForCDN {
-			if output == "terminal" {
+			if output == "CLI" {
 				fmt.Println(ip)
 			} else {
 				file, err := os.OpenFile(output, os.O_APPEND|os.O_WRONLY, 0666)
@@ -353,5 +398,11 @@ func printText(isSilent bool, text string, textType string) {
 		} else if textType == "Error" {
 			gologger.Error().Msg(text)
 		}
+	}
+}
+func createGroup(flagSet *goflags.FlagSet, groupName, description string, flags ...*goflags.FlagData) {
+	flagSet.SetGroup(groupName, description)
+	for _, currentFlag := range flags {
+		currentFlag.Group(groupName)
 	}
 }
