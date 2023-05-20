@@ -48,20 +48,35 @@ go install github.com/ImAyrix/cut-cdn@latest
 
 ## Usage Parameters
 ```
-  -c string
-        Use cache file (offline) [Path]
-  -i string
-        Input [Filename | IP]
-  -o string
-        Output [Filename] (default "terminal")
-  -s string
-        Save all cidr [Path]
-  -silent
-        show only IPs in output
-  -t int
-        Number Of Thread [Number] (default 1)
-  -version
-        show version of cut-cdn
+cut-cdn -h
+```
+This will display help for the tool. Here are all the switches it supports.
+```
+Removing CDN IPs from the list of IP addresses
+
+Usage:
+  cut-cdn [flags]
+
+Flags:
+INPUT:
+   -i string    Input [Filename | IP]
+   -pu string   Provider CIDRs page [URL]
+   -pl string   Providers CIDRs pages [File]
+   -apu string  Append provider to the default providers [URL]
+   -apl string  Append list of providers to the default providers [File]
+   -c string    Use cache file (offline) [File]
+
+RATE-LIMIT:
+   -t int  Number Of Thread [Number] (default 1)
+
+OUTPUT:
+   -o string  File to write output to (optional) (default "CLI")
+   -s string  Save all CIDRs [File]
+
+DEBUG:
+   -silent   Show only IPs in output
+   -version  Show version of cut-cdn
+
 ```
 
 ## Preview
@@ -70,6 +85,25 @@ go install github.com/ImAyrix/cut-cdn@latest
 
 ## Usage
 
+### Set Provider
+If you do not utilize the `-pu` and `-pl` switches, the default providers will be employed ([list of providers](https://github.com/ImAyrix/cut-cdn#cdn-providers)). if you use these two switches, only the list of your input providers will be utilized. In case you wish to add a new link provider in addition to the default providers, make use of `-apu` and `-apl`.
+
++ Just one provider 
+    ```bash
+      cut-cdn -i 127.0.0.1 -pu https://www.cloudflare.com/ips-v4
+    ```
++ List of provider
+    ```bash
+      cut-cdn -i 127.0.0.1 -pl providers.txt
+    ```
++ Append one provider to the default providers
+    ```bash
+      cut-cdn -i 127.0.0.1 -apu https://www.cloudflare.com/ips-v4
+    ```
++ Append list of providers to the default providers
+    ```bash
+      cut-cdn -i 127.0.0.1 -apl providers.txt
+    ```
 
 ### Online mode
 Check your IP list with the latest IP ranges of CDN providers:
