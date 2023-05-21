@@ -59,23 +59,26 @@ Usage:
 
 Flags:
 INPUT:
-   -i string    Input [Filename | IP]
-   -pu string   Provider CIDRs page [URL]
-   -pl string   Providers CIDRs pages [File]
-   -apu string  Append provider to the default providers [URL]
-   -apl string  Append list of providers to the default providers [File]
-   -c string    Use cache file (offline) [File]
+  -i string    Input [Filename | IP]
+  -pu string   Provider CIDRs page [URL]
+  -pl string   Providers CIDRs pages [File]
+  -apu string  Append provider to the default providers [URL]
+  -apl string  Append list of providers to the default providers [File]
+  -c string    Use cache file (offline) [File]
 
 RATE-LIMIT:
-   -t int  Number Of Thread [Number] (default 1)
+  -t int  Number Of Thread [Number] (default 1)
+
+CONFIGURATIONS:
+  -active  Enable active mode for check akamai
 
 OUTPUT:
-   -o string  File to write output to (optional) (default "CLI")
-   -s string  Save all CIDRs [File]
+  -o string  File to write output to (optional) (default "CLI")
+  -s string  Save all CIDRs [File]
 
 DEBUG:
-   -silent   Show only IPs in output
-   -version  Show version of cut-cdn
+  -silent   Show only IPs in output
+  -version  Show version of cut-cdn
 
 ```
 
@@ -104,6 +107,17 @@ If you do not utilize the `-pu` and `-pl` switches, the default providers will b
     ```bash
       cut-cdn -i 127.0.0.1 -apl providers.txt
     ```
+
+## Akamai
+Most content delivery networks (CDNs) have their Classless Inter-Domain Routing (CIDR) blocks specified on a page on their website, which Cut CDN also receives and uses to determine whether the incoming IP is behind the CDN.
+However, Akamai has not publicly specified its IP range. I attempted to find the Akamai CIDRs myself and added them to the tool, which is fairly comprehensive but not entirely foolproof, and I may have overlooked some CIDRs.
+To ensure accuracy, you can use the "-active" key. When this switch is used, all providers are checked as before, but with the added step of actively checking for Akamai as well.
+
+Note: If you want to check many IPs using this method, increase the number of threads so that it checks quickly and takes less time.
+
+```bash
+cut-cdn -i 127.0.0.1 -active
+```
 
 ### Online mode
 Check your IP list with the latest IP ranges of CDN providers:

@@ -38,10 +38,10 @@ type CDN struct {
 
 var CDNS = []CDN{}
 var input, output, savePath, cachePath, provider, providers, append_provider, append_providers string
-var isSilent, showVersion bool
+var isSilent, showVersion, activeMode bool
 var thread int
 
-const VERSION = "1.0.23"
+const VERSION = "1.0.24"
 
 func main() {
 	var allRange []*net.IPNet
@@ -59,6 +59,10 @@ func main() {
 
 	createGroup(flagSet, "rate-limit", "Rate-Limit",
 		flagSet.IntVar(&thread, "t", 1, "Number Of Thread [Number]"),
+	)
+
+	flagSet.CreateGroup("configs", "Configurations",
+		flagSet.BoolVar(&activeMode, "active", false, "Active mode for check akamai"),
 	)
 
 	createGroup(flagSet, "output", "Output",
@@ -312,6 +316,14 @@ func checkAndWrite(allCidr []*net.IPNet, channel chan string, output string) {
 				isIpForCDN = true
 			}
 		}
+		if activeMode {
+			ptrRecords := getPtrRecord(string(ip))
+			for _, v := range ptrRecords {
+				if strings.Contains(v, "akamaitechnologies.com") {
+					isIpForCDN = true
+				}
+			}
+		}
 		if !isIpForCDN {
 			if output == "CLI" {
 				fmt.Println(ip)
@@ -405,4 +417,9 @@ func createGroup(flagSet *goflags.FlagSet, groupName, description string, flags 
 	for _, currentFlag := range flags {
 		currentFlag.Group(groupName)
 	}
+}
+
+func getPtrRecord(ip string) []string {
+	ptr, _ := net.LookupAddr(ip)
+	return ptr
 }
