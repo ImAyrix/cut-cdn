@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"crypto/tls"
 	"flag"
 	"fmt"
 	"github.com/projectdiscovery/goflags"
@@ -41,7 +42,7 @@ var input, output, savePath, cachePath, provider, providers, append_provider, ap
 var isSilent, showVersion, activeMode bool
 var thread int
 
-const VERSION = "1.0.24"
+const VERSION = "1.0.25"
 
 func main() {
 	var allRange []*net.IPNet
@@ -316,7 +317,7 @@ func checkAndWrite(allCidr []*net.IPNet, channel chan string, output string) {
 				isIpForCDN = true
 			}
 		}
-		if activeMode {
+		if activeMode && !isIpForCDN {
 			ptrRecords := getPtrRecord(string(ip))
 			for _, v := range ptrRecords {
 				if strings.Contains(v, "akamaitechnologies.com") {
@@ -324,6 +325,14 @@ func checkAndWrite(allCidr []*net.IPNet, channel chan string, output string) {
 				}
 			}
 		}
+
+		if activeMode && !isIpForCDN {
+			http_server_header := getHttpHeader("http://" + string(ip))
+			if http_server_header == "AkamaiGHost" {
+				isIpForCDN = true
+			}
+		}
+
 		if !isIpForCDN {
 			if output == "CLI" {
 				fmt.Println(ip)
@@ -422,4 +431,15 @@ func createGroup(flagSet *goflags.FlagSet, groupName, description string, flags 
 func getPtrRecord(ip string) []string {
 	ptr, _ := net.LookupAddr(ip)
 	return ptr
+}
+
+func getHttpHeader(url string) string {
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:103.0) Gecko/20100101 Firefox/103.0")
+	resp, err := http.Get(url)
+	if err == nil {
+		return resp.Header.Get("Server")
+	}
+	return ""
 }
