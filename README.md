@@ -59,26 +59,26 @@ Usage:
 
 Flags:
 INPUT:
-  -i string    Input [Filename | IP]
-  -pu string   Provider CIDRs page [URL]
-  -pl string   Providers CIDRs pages [File]
-  -apu string  Append provider to the default providers [URL]
-  -apl string  Append list of providers to the default providers [File]
-  -c string    Use cache file (offline) [File]
+  -i, -ip string                 Input [Filename | IP]
+  -pu, -provider-url string      Provider CIDRs page [URL]
+  -pc, -providers-config string  Providers config file (default "~/cut-cdn/providers.yaml")
+  -r, -ranges string             CIDR ranges [File] (default "~/cut-cdn/ranges.txt")
 
 RATE-LIMIT:
-  -t int  Number Of Thread [Number] (default 1)
+  -t, -thread int  Number Of Thread [Number] (default 1)
 
 CONFIGURATIONS:
-  -active  Enable active mode for check akamai
+  -a, -active          Active mode for check akamai
+  -ua, -update-all     Update CUT-CDN Data (providers & ranges)
+  -ur, -update-ranges  Update CUT-CDN Data (just ranges)
 
 OUTPUT:
-  -o string  File to write output to (optional) (default "CLI")
-  -s string  Save all CIDRs [File]
+  -o, -output string  File to write output to (optional) (default "CLI")
 
 DEBUG:
-  -silent   Show only IPs in output
-  -version  Show version of cut-cdn
+  -q, -silent   Show only IPs in output
+  -v, -version  Show version of cut-cdn
+
 
 ```
 
@@ -87,26 +87,6 @@ DEBUG:
 ![cut-cdn](https://user-images.githubusercontent.com/89543912/221229391-5bb70bb1-5b6f-43ae-a912-0d1663498cad.png)
 
 ## Usage
-
-### Set Provider
-If you do not utilize the `-pu` and `-pl` switches, the default providers will be employed ([list of providers](https://github.com/ImAyrix/cut-cdn#cdn-providers)). if you use these two switches, only the list of your input providers will be utilized. In case you wish to add a new link provider in addition to the default providers, make use of `-apu` and `-apl`.
-
-+ Just one provider 
-    ```bash
-      cut-cdn -i 127.0.0.1 -pu https://www.cloudflare.com/ips-v4
-    ```
-+ List of provider
-    ```bash
-      cut-cdn -i 127.0.0.1 -pl providers.txt
-    ```
-+ Append one provider to the default providers
-    ```bash
-      cut-cdn -i 127.0.0.1 -apu https://www.cloudflare.com/ips-v4
-    ```
-+ Append list of providers to the default providers
-    ```bash
-      cut-cdn -i 127.0.0.1 -apl providers.txt
-    ```
 
 ## Akamai
 Most content delivery networks (CDNs) have their Classless Inter-Domain Routing (CIDR) blocks specified on a page on their website, which Cut CDN also receives and uses to determine whether the incoming IP is behind the CDN.
@@ -119,33 +99,48 @@ Note: If you want to check many IPs using this method, increase the number of th
 cut-cdn -i 127.0.0.1 -active
 ```
 
-### Online mode
-Check your IP list with the latest IP ranges of CDN providers:
+### Basic
+Check your IP list with the IP ranges of CDN providers:
 
-+ Single IP
-    ```bash 
++ Single IP 
+    ```bash
     cut-cdn -i 127.0.0.1
     echo "127.0.0.1" | cut-cdn
     ```
-+ List of IPs
++ List of IPs 
     ```bash
-  cut-cdn -i allIP.txt
-  cat allIP.txt | cut-cdn
+    cut-cdn -i allIP.txt
+    cat allIP.txt | cut-cdn
     ```
-+ To store results use `-o` option
++ To store results use `-o` option 
     ```bash
     cut-cdn -i allIP.txt -o output.txt
     ```
-+ To set concurrency use -t option (Default is 1)
++ To set concurrency use `-t` option (Default is 1)
+    ```bash
+    cut-cdn -i allIP.txt -o output.txt -t 20
+    ```
+
+### Providers
+During the initial run of the tool after installation, two files are generated in the directory ~/cut-cdn. One of these files, providers.yaml, contains the link pages where providers have specified their CIDRs. The other file, ranges.txt, contains the CIDRs of these providers.
+
++ Update Ranges
+
+    The tool will request the provider's pages again and check whether a new range has been added or not.
+    ```bash
+      cut-cdn -ur
+    ```
+
++ Update Providers
+
+  This tool will query the Cut-CDN GitHub page and check if a new provider has been added or not. And then it queries the providers and checks if a new range has been added or not.
   ```bash
-  cut-cdn -i allIP.txt -o output.txt -t 20
+  cut-cdn -ua
   ```
-### Offline mode
-1. To check IPs in offline mode you should save CDNs IP ranges in a file
-    ```bash
-    cut-cdn -s allCIDR.txt
-   ```
-2. After that you can run it in offline mode by `-c` pointing to the CIDR file
-    ```bash
-   cut-cdn -i allIP.txt -o output.txt -t 20 -c allCIDR.txt
-   ```
+
++ Manual update providers
+
+  If you yourself added a new link from the provider to the providers.yaml file, you must update the ranges once.
+  ```bash
+  cut-cdn -ur
+  ```
