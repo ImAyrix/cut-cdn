@@ -12,6 +12,7 @@ SendRequest:
     - https://ayrix.info/cut-cdn-data/1/
     - https://ayrix.info/cut-cdn-data/2/
     - https://cdn.nuclei.sh
+    - http://edge.sotoon.ir/ip-list.json
 
 ReadFileUrl:
     - https://www.arvancloud.ir/en/ips.txt
