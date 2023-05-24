@@ -84,7 +84,7 @@ DEBUG:
 
 ## Usage
 
-## Akamai
+### Akamai
 Most content delivery networks (CDNs) have their Classless Inter-Domain Routing (CIDR) blocks specified on a page on their website, which Cut CDN also receives and uses to determine whether the incoming IP is behind the CDN.
 However, Akamai has not publicly specified its IP range. I attempted to find the Akamai CIDRs myself and added them to the tool, which is fairly comprehensive but not entirely foolproof, and I may have overlooked some CIDRs.
 To ensure accuracy, you can use the "-active" key. When this switch is used, all providers are checked as before, but with the added step of actively checking for Akamai as well.
