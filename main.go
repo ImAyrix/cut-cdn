@@ -44,11 +44,11 @@ type Config struct {
 
 var config Config
 var CDNS = []CDN{}
-var input, output, savePath, cachePath, provider, providers, append_provider, append_providers string
+var input, output, savePath string
 var isSilent, showVersion, activeMode, updateAll, updateRanges bool
 var thread int
 
-const VERSION = "1.0.26"
+const VERSION = "1.0.27"
 
 var homeDIR, _ = os.UserHomeDir()
 
@@ -58,9 +58,6 @@ func main() {
 	flagSet.SetDescription("Removing CDN IPs from the list of IP addresses")
 	createGroup(flagSet, "input", "Input",
 		flagSet.StringVarP(&input, "ip", "i", "", "Input [Filename | IP]"),
-		flagSet.StringVarP(&provider, "provider-url", "pu", "", "Provider CIDRs page [URL]"),
-		flagSet.StringVarP(&providers, "providers-config", "pc", homeDIR+"/cut-cdn/providers.yaml", "Providers config file"),
-		flagSet.StringVarP(&cachePath, "ranges", "r", homeDIR+"/cut-cdn/ranges.txt", "CIDR ranges [File]"),
 	)
 
 	createGroup(flagSet, "rate-limit", "Rate-Limit",
@@ -99,17 +96,9 @@ func main() {
 	}
 	checkUpdate(isSilent)
 
-	if cachePath != "" {
-		printText(isSilent, "Loading Custom CIDR File", "Info")
-		cache, err := os.ReadFile(cachePath)
-		checkError(err)
-		allRange = regexIp(string(cache))
-		printText(isSilent, "Custom CIDRs Loaded", "Info")
-	} else {
-		printText(isSilent, "Loading All CDN Range", "Info")
-		allRange = loadAllCDN()
-		printText(isSilent, "All CDN Range Loaded", "Info")
-	}
+	printText(isSilent, "Loading All CDN Range", "Info")
+	allRange = loadAllCDN()
+	printText(isSilent, "All CDN Range Loaded", "Info")
 
 	if input == "" && fi.Mode()&os.ModeNamedPipe == 0 {
 		os.Exit(0)
@@ -149,43 +138,35 @@ func main() {
 }
 
 func loadAllCDN() []*net.IPNet {
-	if provider == "" && providers == homeDIR+"/cut-cdn/providers.yaml" {
-		var allRanges []*net.IPNet
-		data, err := os.ReadFile(cachePath)
-		checkError(err)
+	var allRanges []*net.IPNet
+	data, err := os.ReadFile(homeDIR + "/cut-cdn/ranges.txt")
+	checkError(err)
 
-		for _, cidr := range strings.Split(string(data), "\n") {
-			if cidr != "" {
-				_, cidr, _ := net.ParseCIDR(string(cidr))
-				allRanges = append(allRanges, cidr)
-			}
+	for _, cidr := range strings.Split(string(data), "\n") {
+		if cidr != "" {
+			_, cidr, _ := net.ParseCIDR(string(cidr))
+			allRanges = append(allRanges, cidr)
 		}
-		return allRanges
-	} else {
-		return loadAllCDNOnline()
 	}
+	return allRanges
 }
 
 func loadAllCDNOnline() []*net.IPNet {
 	var wg sync.WaitGroup
 	var allRanges []*net.IPNet
 
-	if provider != "" {
-		CDNS = append(CDNS, CDN{provider, sendRequest})
-	} else {
-		cleanenv.ReadConfig(providers, &config)
-		sendReqs := config.SendRequest
-		readFiles := config.ReadFileUrl
+	cleanenv.ReadConfig(homeDIR+"/cut-cdn/providers.yaml", &config)
+	sendReqs := config.SendRequest
+	readFiles := config.ReadFileUrl
 
-		for _, v := range sendReqs {
-			if v != "" {
-				CDNS = append(CDNS, CDN{v, sendRequest})
-			}
+	for _, v := range sendReqs {
+		if v != "" {
+			CDNS = append(CDNS, CDN{v, sendRequest})
 		}
-		for _, v := range readFiles {
-			if v != "" {
-				CDNS = append(CDNS, CDN{v, readFileUrl})
-			}
+	}
+	for _, v := range readFiles {
+		if v != "" {
+			CDNS = append(CDNS, CDN{v, readFileUrl})
 		}
 	}
 

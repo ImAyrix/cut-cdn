@@ -59,10 +59,7 @@ Usage:
 
 Flags:
 INPUT:
-  -i, -ip string                 Input [Filename | IP]
-  -pu, -provider-url string      Provider CIDRs page [URL]
-  -pc, -providers-config string  Providers config file (default "~/cut-cdn/providers.yaml")
-  -r, -ranges string             CIDR ranges [File] (default "~/cut-cdn/ranges.txt")
+  -i, -ip string  Input [Filename | IP]
 
 RATE-LIMIT:
   -t, -thread int  Number Of Thread [Number] (default 1)
@@ -78,7 +75,6 @@ OUTPUT:
 DEBUG:
   -q, -silent   Show only IPs in output
   -v, -version  Show version of cut-cdn
-
 
 ```
 
