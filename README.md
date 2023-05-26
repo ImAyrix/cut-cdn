@@ -16,7 +16,6 @@ This is a handy tool for bug hunters.
 
 ## CDN Providers
 * Akamai
-* Amazon
 * Arvancloud
 * Azure CDN
 * Bing
