@@ -2,7 +2,6 @@ SendRequest:
     - https://api.fastly.com/public-ip-list
     - https://www.gstatic.com/ipranges/cloud.json
     - https://www.gstatic.com/ipranges/goog.json
-    - https://ip-ranges.amazonaws.com/ip-ranges.json
     - https://www.cloudflare.com/ips-v4
     - https://d7uri8nf7uskq.cloudfront.net/tools/list-cloudfront-ips
     - https://support.maxcdn.com/hc/en-us/article_attachments/360051920551/maxcdn_ips.txt
