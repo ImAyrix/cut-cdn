@@ -447,9 +447,17 @@ func getHttpHeader(url string) string {
 func convertIPListToStringList(ips []net.IP) []string {
 	var result []string
 	for _, ip := range ips {
-		result = append(result, ip.String())
+		fmt.Println(IsIPv6Valid(ip.String()), ip.String())
+		if !IsIPv6Valid(ip.String()) {
+			result = append(result, ip.String())
+		}
 	}
 	return result
+}
+
+func IsIPv6Valid(ip string) bool {
+	parsedIP := net.ParseIP(ip)
+	return parsedIP != nil && parsedIP.To16() != nil && parsedIP.To4() == nil
 }
 
 func isValidIP(ip string) bool {
