@@ -312,6 +312,36 @@ func readInput(isSilent bool, input string) []string {
 	defer printText(isSilent, "Input Parsed", "Info")
 
 	input = strings.TrimSpace(input)
+
+	if _, err := os.Stat(input); err == nil {
+		fileByte, err := os.ReadFile(input)
+		checkError(err)
+
+		var result []string
+		fileData := strings.Split(string(fileByte), "\n")
+		for _, v := range fileData {
+			v = strings.TrimSpace(v)
+			if v == "" {
+				continue
+			}
+
+			if isValidIP(v) {
+				result = append(result, v)
+			} else {
+				v = strings.TrimPrefix(v, "https://")
+				v = strings.TrimPrefix(v, "http://")
+				domainRegex := regexp.MustCompile(`^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z]{2,})+$`)
+				if domainRegex.MatchString(v) {
+					ips, err := net.LookupIP(v)
+					if err == nil {
+						result = append(result, convertIPListToStringList(ips)...)
+					}
+				}
+			}
+		}
+		return result
+	}
+
 	if input == "STDIN" {
 		var result []string
 		scanner := bufio.NewScanner(os.Stdin)
@@ -351,32 +381,7 @@ func readInput(isSilent bool, input string) []string {
 		}
 	}
 
-	fileByte, err := os.ReadFile(input)
-	checkError(err)
-
-	var result []string
-	fileData := strings.Split(string(fileByte), "\n")
-	for _, v := range fileData {
-		v = strings.TrimSpace(v)
-		if v == "" {
-			continue
-		}
-
-		if isValidIP(v) {
-			result = append(result, v)
-		} else {
-			v = strings.TrimPrefix(v, "https://")
-			v = strings.TrimPrefix(v, "http://")
-			domainRegex := regexp.MustCompile(`^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z]{2,})+$`)
-			if domainRegex.MatchString(v) {
-				ips, err := net.LookupIP(v)
-				if err == nil {
-					result = append(result, convertIPListToStringList(ips)...)
-				}
-			}
-		}
-	}
-	return result
+	return nil
 }
 
 func checkUpdate(isSilent bool) {
@@ -447,7 +452,6 @@ func getHttpHeader(url string) string {
 func convertIPListToStringList(ips []net.IP) []string {
 	var result []string
 	for _, ip := range ips {
-		fmt.Println(IsIPv6Valid(ip.String()), ip.String())
 		if !IsIPv6Valid(ip.String()) {
 			result = append(result, ip.String())
 		}
