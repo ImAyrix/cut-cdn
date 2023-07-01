@@ -6,6 +6,9 @@ import (
 	"crypto/tls"
 	"flag"
 	"fmt"
+	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/projectdiscovery/goflags"
+	"github.com/projectdiscovery/gologger"
 	"io"
 	"net"
 	"net/http"
@@ -14,9 +17,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"github.com/ilyakaznacheev/cleanenv"
-	"github.com/projectdiscovery/goflags"
-	"github.com/projectdiscovery/gologger"
 )
 
 const (
@@ -48,7 +48,7 @@ var input, output, savePath string
 var isSilent, showVersion, activeMode, updateAll, updateRanges bool
 var thread int
 
-const VERSION = "1.0.27"
+const VERSION = "1.0.28"
 
 var homeDIR, _ = os.UserHomeDir()
 
