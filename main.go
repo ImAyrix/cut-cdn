@@ -6,9 +6,6 @@ import (
 	"crypto/tls"
 	"flag"
 	"fmt"
-	"github.com/ilyakaznacheev/cleanenv"
-	"github.com/projectdiscovery/goflags"
-	"github.com/projectdiscovery/gologger"
 	"io"
 	"net"
 	"net/http"
@@ -17,6 +14,9 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/projectdiscovery/goflags"
+	"github.com/projectdiscovery/gologger"
 )
 
 const (
@@ -309,33 +309,79 @@ func checkAndWrite(allCidr []*net.IPNet, channel chan string, output string) {
 
 func readInput(isSilent bool, input string) []string {
 	printText(isSilent, "Input Parsing", "Info")
+	defer printText(isSilent, "Input Parsed", "Info")
 
-	input = strings.Trim(input, " ")
+	input = strings.TrimSpace(input)
+
+	if _, err := os.Stat(input); err == nil {
+		fileByte, err := os.ReadFile(input)
+		checkError(err)
+
+		var result []string
+		fileData := strings.Split(string(fileByte), "\n")
+		for _, v := range fileData {
+			v = strings.TrimSpace(v)
+			if v == "" {
+				continue
+			}
+
+			if isValidIP(v) {
+				result = append(result, v)
+			} else {
+				v = strings.TrimPrefix(v, "https://")
+				v = strings.TrimPrefix(v, "http://")
+				domainRegex := regexp.MustCompile(`^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z]{2,})+$`)
+				if domainRegex.MatchString(v) {
+					ips, err := net.LookupIP(v)
+					if err == nil {
+						result = append(result, convertIPListToStringList(ips)...)
+					}
+				}
+			}
+		}
+		return result
+	}
+
 	if input == "STDIN" {
 		var result []string
 		scanner := bufio.NewScanner(os.Stdin)
 		for scanner.Scan() {
-			ip := scanner.Text()
-			result = append(result, strings.Trim(ip, " "))
+			ip := strings.TrimSpace(scanner.Text())
+			if ip == "" {
+				continue
+			}
+			if isValidIP(ip) {
+				result = append(result, ip)
+			} else {
+				ip = strings.TrimPrefix(ip, "https://")
+				ip = strings.TrimPrefix(ip, "http://")
+				domainRegex := regexp.MustCompile(`^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z]{2,})+$`)
+				if domainRegex.MatchString(ip) {
+					ips, err := net.LookupIP(ip)
+					if err == nil {
+						result = append(result, convertIPListToStringList(ips)...)
+					}
+				}
+			}
 		}
-		printText(isSilent, "Input Parsed", "Info")
 		return result
 	}
-	ip := net.ParseIP(input)
-	if ip != nil {
-		printText(isSilent, "Input Parsed", "Info")
-		return []string{ip.String()}
+
+	if isValidIP(input) {
+		return []string{input}
 	}
 
-	fileByte, err := os.ReadFile(input)
-	checkError(err)
-	printText(isSilent, "Input Parsed", "Info")
-	var result []string
-	fileData := strings.Split(string(fileByte), "\n")
-	for _, v := range fileData {
-		result = append(result, strings.Trim(v, " "))
+	input = strings.TrimPrefix(input, "https://")
+	input = strings.TrimPrefix(input, "http://")
+	domainRegex := regexp.MustCompile(`^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z]{2,})+$`)
+	if domainRegex.MatchString(input) {
+		ips, err := net.LookupIP(input)
+		if err == nil {
+			return convertIPListToStringList(ips)
+		}
 	}
-	return result
+
+	return nil
 }
 
 func checkUpdate(isSilent bool) {
@@ -401,6 +447,26 @@ func getHttpHeader(url string) string {
 		return resp.Header.Get("Server")
 	}
 	return ""
+}
+
+func convertIPListToStringList(ips []net.IP) []string {
+	var result []string
+	for _, ip := range ips {
+		if !IsIPv6Valid(ip.String()) {
+			result = append(result, ip.String())
+		}
+	}
+	return result
+}
+
+func IsIPv6Valid(ip string) bool {
+	parsedIP := net.ParseIP(ip)
+	return parsedIP != nil && parsedIP.To16() != nil && parsedIP.To4() == nil
+}
+
+func isValidIP(ip string) bool {
+	validatedIp := net.ParseIP(ip)
+	return validatedIp != nil
 }
 
 func baseConfig(updateAll bool, updateRanges bool) {
