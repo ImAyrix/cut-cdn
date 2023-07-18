@@ -19,19 +19,6 @@ import (
 	"time"
 )
 
-const (
-	colorReset  = "\033[0m"
-	colorRed    = "\033[31m"
-	colorGreen  = "\033[32m"
-	colorYellow = "\033[33m"
-	colorBlue   = "\033[34m"
-	//colorPurple := "\033[35m"
-	//colorCyan := "\033[36m"
-	//colorWhite := "\033[37m"
-)
-
-var wg sync.WaitGroup
-
 type fetcher func(url string) []*net.IPNet
 type CDN struct {
 	url    string
@@ -42,15 +29,24 @@ type Config struct {
 	ReadFileUrl []string `yaml:"ReadFileUrl"`
 }
 
-var config Config
-var CDNS = []CDN{}
-var input, output, savePath string
-var isSilent, showVersion, activeMode, updateAll, updateRanges bool
-var thread int
+var (
+	isSilent, showVersion, activeMode, updateAll, updateRanges bool
+	input, output, savePath                                    string
+	homeDIR, _                                                 = os.UserHomeDir()
+	config                                                     Config
+	thread                                                     int
+	CDNS                                                       []CDN
+	wg                                                         sync.WaitGroup
+)
 
-const VERSION = "1.0.28"
-
-var homeDIR, _ = os.UserHomeDir()
+const (
+	colorReset  = "\033[0m"
+	colorRed    = "\033[31m"
+	colorGreen  = "\033[32m"
+	colorYellow = "\033[33m"
+	colorBlue   = "\033[34m"
+	VERSION     = "1.0.28"
+)
 
 func main() {
 	var allRange []*net.IPNet
@@ -148,12 +144,15 @@ func loadAllCDN() []*net.IPNet {
 			allRanges = append(allRanges, cidr)
 		}
 	}
+
 	return allRanges
 }
 
 func loadAllCDNOnline() []*net.IPNet {
-	var wg sync.WaitGroup
-	var allRanges []*net.IPNet
+	var (
+		allRanges []*net.IPNet
+		wg        sync.WaitGroup
+	)
 
 	cleanenv.ReadConfig(homeDIR+"/cut-cdn/providers.yaml", &config)
 	sendReqs := config.SendRequest
@@ -164,6 +163,7 @@ func loadAllCDNOnline() []*net.IPNet {
 			CDNS = append(CDNS, CDN{v, sendRequest})
 		}
 	}
+
 	for _, v := range readFiles {
 		if v != "" {
 			CDNS = append(CDNS, CDN{v, readFileUrl})
@@ -210,14 +210,17 @@ func loadAllCDNOnline() []*net.IPNet {
 func sendRequest(url string) []*net.IPNet {
 	req, err := http.NewRequest("GET", url, nil)
 	checkError(err)
+
 	req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:103.0) Gecko/20100101 Firefox/103.0")
 	client := &http.Client{
 		Timeout: 30 * time.Second,
 	}
+
 	resp, err := client.Do(req)
 	if checkError(err) {
 		return []*net.IPNet{}
 	}
+
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		checkError(err)
@@ -236,6 +239,7 @@ func readFileUrl(url string) []*net.IPNet {
 		},
 		Timeout: 60 * time.Second,
 	}
+
 	// Put content on file
 	resp, err := client.Get(url)
 	if checkError(err) {
@@ -267,8 +271,9 @@ func regexIp(body string) []*net.IPNet {
 }
 
 func checkAndWrite(allCidr []*net.IPNet, channel chan string, output string) {
-	defer wg.Done()
 	var isIpForCDN bool
+	defer wg.Done()
+
 	for ip := range channel {
 		isIpForCDN = false
 		for _, cidr := range allCidr {
@@ -276,6 +281,7 @@ func checkAndWrite(allCidr []*net.IPNet, channel chan string, output string) {
 				isIpForCDN = true
 			}
 		}
+
 		if activeMode && !isIpForCDN {
 			ptrRecords := getPtrRecord(string(ip))
 			for _, v := range ptrRecords {
@@ -286,8 +292,8 @@ func checkAndWrite(allCidr []*net.IPNet, channel chan string, output string) {
 		}
 
 		if activeMode && !isIpForCDN {
-			http_server_header := getHttpHeader("http://" + string(ip))
-			if http_server_header == "AkamaiGHost" {
+			httpServerHeader := getHttpHeader("http://" + string(ip))
+			if httpServerHeader == "AkamaiGHost" {
 				isIpForCDN = true
 			}
 		}
@@ -417,15 +423,17 @@ func checkError(e error) bool {
 
 func printText(isSilent bool, text string, textType string) {
 	if !isSilent {
-		if textType == "Info" {
+		switch textType {
+		case "Info":
 			gologger.Info().Msg(text)
-		} else if textType == "Print" {
+		case "Print":
 			gologger.Print().Msg(text)
-		} else if textType == "Error" {
+		case "Error":
 			gologger.Error().Msg(text)
 		}
 	}
 }
+
 func createGroup(flagSet *goflags.FlagSet, groupName, description string, flags ...*goflags.FlagData) {
 	flagSet.SetGroup(groupName, description)
 	for _, currentFlag := range flags {
@@ -461,7 +469,7 @@ func convertIPListToStringList(ips []net.IP) []string {
 
 func IsIPv6Valid(ip string) bool {
 	parsedIP := net.ParseIP(ip)
-	return parsedIP != nil && parsedIP.To16() != nil && parsedIP.To4() == nil
+	return (parsedIP != nil) && (parsedIP.To16() != nil) && (parsedIP.To4() == nil)
 }
 
 func isValidIP(ip string) bool {
