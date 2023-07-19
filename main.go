@@ -45,7 +45,7 @@ const (
 	colorGreen  = "\033[32m"
 	colorYellow = "\033[33m"
 	colorBlue   = "\033[34m"
-	VERSION     = "1.0.28"
+	VERSION     = "1.0.29"
 )
 
 func main() {
