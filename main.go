@@ -45,7 +45,7 @@ const (
 	colorGreen  = "\033[32m"
 	colorYellow = "\033[33m"
 	colorBlue   = "\033[34m"
-	VERSION     = "1.0.29"
+	VERSION     = "1.0.30"
 )
 
 func main() {
@@ -129,8 +129,6 @@ func main() {
 	}
 	wg.Wait()
 
-	printText(isSilent, "", "Print")
-	printText(isSilent, "Github page: https://github.com/ImAyrix/cut-cdn", "Print")
 }
 
 func loadAllCDN() []*net.IPNet {
@@ -293,7 +291,7 @@ func checkAndWrite(allCidr []*net.IPNet, channel chan string, output string) {
 
 		if activeMode && !isIpForCDN {
 			httpServerHeader := getHttpHeader("http://" + string(ip))
-			if httpServerHeader == "AkamaiGHost" {
+			if httpServerHeader == "AkamaiGHost" || httpServerHeader == "CloudFront" || httpServerHeader == "cloudflare" {
 				isIpForCDN = true
 			}
 		}
