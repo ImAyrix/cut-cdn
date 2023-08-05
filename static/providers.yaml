@@ -8,8 +8,8 @@ SendRequest:
     - https://www.bing.com/toolbox/bingbot.json
     - https://cachefly.cachefly.net/ips/rproxy.txt
     - https://docs.imperva.com/en-US/bundle/z-kb-articles-km/page/c85245b7.html
-    - https://ayrix.info/cut-cdn-data/1/
-    - https://ayrix.info/cut-cdn-data/2/
+    - https://raw.githubusercontent.com/ImAyrix/cut-cdn/master/static/static-cdn-ranges-1.txt
+    - https://raw.githubusercontent.com/ImAyrix/cut-cdn/master/static/static-cdn-ranges-2.txt
     - https://cdn.nuclei.sh
     - http://edge.sotoon.ir/ip-list.json
 
