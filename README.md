@@ -117,7 +117,7 @@ Check your IP list with the IP ranges of CDN providers:
     ```
 
 ### Providers
-During the initial run of the tool after installation, two files are generated in the directory ~/cut-cdn. One of these files, providers.yaml, contains the link pages where providers have specified their CIDRs. The other file, ranges.txt, contains the CIDRs of these providers.
+During the initial run of the tool after installation, two files are generated in the directory ~/.config/cut-cdn. One of these files, providers.yaml, contains the link pages where providers have specified their CIDRs. The other file, ranges.txt, contains the CIDRs of these providers.
 
 + Update Ranges
 

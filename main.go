@@ -45,7 +45,7 @@ const (
 	colorGreen  = "\033[32m"
 	colorYellow = "\033[33m"
 	colorBlue   = "\033[34m"
-	VERSION     = "1.0.30"
+	VERSION     = "1.0.31"
 )
 
 func main() {
@@ -133,7 +133,7 @@ func main() {
 
 func loadAllCDN() []*net.IPNet {
 	var allRanges []*net.IPNet
-	data, err := os.ReadFile(homeDIR + "/cut-cdn/ranges.txt")
+	data, err := os.ReadFile(homeDIR + "/.config/cut-cdn/ranges.txt")
 	checkError(err)
 
 	for _, cidr := range strings.Split(string(data), "\n") {
@@ -152,7 +152,7 @@ func loadAllCDNOnline() []*net.IPNet {
 		wg        sync.WaitGroup
 	)
 
-	cleanenv.ReadConfig(homeDIR+"/cut-cdn/providers.yaml", &config)
+	cleanenv.ReadConfig(homeDIR+"/.config/cut-cdn/providers.yaml", &config)
 	sendReqs := config.SendRequest
 	readFiles := config.ReadFileUrl
 
@@ -476,38 +476,43 @@ func isValidIP(ip string) bool {
 }
 
 func baseConfig(updateAll bool, updateRanges bool) {
-	if updateAll {
-		_ = os.Remove(homeDIR + "/cut-cdn/providers.yaml")
-		_ = os.Remove(homeDIR + "/cut-cdn/ranges.txt")
-	} else if updateRanges {
-		_ = os.Remove(homeDIR + "/cut-cdn/ranges.txt")
-	}
 	func() {
-		if _, err := os.Stat(homeDIR + "/cut-cdn"); os.IsNotExist(err) {
+		if _, err := os.Stat(homeDIR + "/.config"); os.IsNotExist(err) {
+			_ = os.Mkdir(homeDIR+"/.config", os.ModePerm)
+		}
+
+		if _, err := os.Stat(homeDIR + "/.config/cut-cdn"); os.IsNotExist(err) {
 			printText(isSilent, "Create Cut-CDN DIR", "Info")
-			_ = os.Mkdir(homeDIR+"/cut-cdn", os.ModePerm)
+			_ = os.Mkdir(homeDIR+"/.config/cut-cdn", os.ModePerm)
 		}
 	}()
 
+	if updateAll {
+		_ = os.Remove(homeDIR + "/.config/cut-cdn/providers.yaml")
+		_ = os.Remove(homeDIR + "/.config/cut-cdn/ranges.txt")
+	} else if updateRanges {
+		_ = os.Remove(homeDIR + "/.config/cut-cdn/ranges.txt")
+	}
+
 	func() {
-		if _, err := os.Stat(homeDIR + "/cut-cdn/providers.yaml"); os.IsNotExist(err) {
+		if _, err := os.Stat(homeDIR + "/.config/cut-cdn/providers.yaml"); os.IsNotExist(err) {
 			printText(isSilent, "Create Cut-CDN Providers File", "Info")
-			_, _ = os.Create(homeDIR + "/cut-cdn/providers.yaml")
+			_, _ = os.Create(homeDIR + "/.config/cut-cdn/providers.yaml")
 
 			req, _ := http.NewRequest("GET", "https://raw.githubusercontent.com/ImAyrix/cut-cdn/master/static/providers.yaml", nil)
 			req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:103.0) Gecko/20100101 Firefox/103.0")
 			resp, _ := http.Get("https://raw.githubusercontent.com/ImAyrix/cut-cdn/master/static/providers.yaml")
 
 			body, _ := io.ReadAll(resp.Body)
-			_ = os.WriteFile(homeDIR+"/cut-cdn/providers.yaml", body, 0644)
+			_ = os.WriteFile(homeDIR+"/.config/cut-cdn/providers.yaml", body, 0644)
 
 		}
 	}()
 
 	func() {
-		if _, err := os.Stat(homeDIR + "/cut-cdn/ranges.txt"); os.IsNotExist(err) {
+		if _, err := os.Stat(homeDIR + "/.config/cut-cdn/ranges.txt"); os.IsNotExist(err) {
 			printText(isSilent, "Create CDN CIDRs File", "Info")
-			file, _ := os.Create(homeDIR + "/cut-cdn/ranges.txt")
+			file, _ := os.Create(homeDIR + "/.config/cut-cdn/ranges.txt")
 			allRanges := loadAllCDNOnline()
 			data := ""
 			for _, cidr := range allRanges {
