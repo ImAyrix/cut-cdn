@@ -11,6 +11,7 @@ SendRequest:
     - https://raw.githubusercontent.com/ImAyrix/cut-cdn/master/static/static-cdn-ranges-1.txt
     - https://raw.githubusercontent.com/ImAyrix/cut-cdn/master/static/static-cdn-ranges-2.txt
     - http://edge.sotoon.ir/ip-list.json
+    - http://kaeferjaeger.gay/cdn-ranges/all-cdn.txt
 
 ReadFileUrl:
     - https://www.arvancloud.ir/en/ips.txt
