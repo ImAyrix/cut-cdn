@@ -31,7 +31,6 @@ This is a handy tool for bug hunters.
 * Imperva
 * Incapsula
 * Leaseweb
-* Maxcdn
 * Oracle
 * Qrator
 * StackPath
