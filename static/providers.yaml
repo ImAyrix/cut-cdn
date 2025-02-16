@@ -16,13 +16,14 @@ SendRequest:
     - https://raw.githubusercontent.com/six2dez/ipcdn/refs/heads/main/ranges.txt
     - https://ip-ranges.amazonaws.com/ip-ranges.json
     - https://prefixlists.tools.cdn77.com/public_lmax_prefixes.json
+    - https://quic.cloud/ips
     - https://raw.githubusercontent.com/femueller/cloud-ip-ranges/refs/heads/master/aws-ip-ranges.json
 
 ReadFileUrl:
     - https://www.arvancloud.ir/en/ips.txt
     - https://raw.githubusercontent.com/stamparm/maltrail/refs/heads/master/misc/cdn_ranges.txt
     - https://cachefly.cachefly.net/ips/rproxy.txt
-    - https://download.microsoft.com/download/7/1/D/71D86715-5596-4529-9B13-DA13A5DE5B63/ServiceTags_Public_20230515.json
+    - https://download.microsoft.com/download/7/1/D/71D86715-5596-4529-9B13-DA13A5DE5B63/ServiceTags_Public_20250210.json
     - https://download.microsoft.com/download/0/1/8/018E208D-54F8-44CD-AA26-CD7BC9524A8C/PublicIPs_20200824.xml
     - https://digitalocean.com/geo/google.csv
     - https://docs.oracle.com/en-us/iaas/tools/public_ip_ranges.json
