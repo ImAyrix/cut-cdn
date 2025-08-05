@@ -6,9 +6,6 @@ import (
 	"crypto/tls"
 	"flag"
 	"fmt"
-	"github.com/ilyakaznacheev/cleanenv"
-	"github.com/projectdiscovery/goflags"
-	"github.com/projectdiscovery/gologger"
 	"io"
 	"net"
 	"net/http"
@@ -17,6 +14,10 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/projectdiscovery/goflags"
+	"github.com/projectdiscovery/gologger"
 )
 
 type fetcher func(url string) []*net.IPNet
@@ -256,7 +257,12 @@ func readFileUrl(url string) []*net.IPNet {
 
 func regexIp(body string) []*net.IPNet {
 	body = strings.Replace(body, "\\/", "/", -1)
-	re, e := regexp.Compile(`(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(3[0-2]|[1-2][0-9]|[0-9]))`)
+
+	ipv4Re := `(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(3[0-2]|[1-2][0-9]|[0-9]))`
+	ipv6Re := `(((?:[0-9A-Fa-f]{1,4}))*((?::[0-9A-Fa-f]{1,4}))*::((?:[0-9A-Fa-f]{1,4}))*((?::[0-9A-Fa-f]{1,4}))*|((?:[0-9A-Fa-f]{1,4}))((?::[0-9A-Fa-f]{1,4})){7})(\/(12[0-8]|1[01][0-9]|[1-9]?[0-9]))?`
+
+	re, e := regexp.Compile(ipv4Re + "|" + ipv6Re)
+
 	checkError(e)
 
 	var ranges []*net.IPNet
